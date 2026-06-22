@@ -1,0 +1,8 @@
+{
+  "name": "HexaMind",
+  "description": "Next-Gen Digital I Ching (Meihua Yishu) Decision Engine based on five-element dynamics and real-time cosmic seed mapping",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
