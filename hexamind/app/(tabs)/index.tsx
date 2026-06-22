@@ -1,15 +1,107 @@
 import { Image } from 'expo-image';
-import { Platform, StyleSheet, View, Text } from 'react-native';
+import { Link } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import type { Session } from '@supabase/supabase-js';
 
 import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { getErrorMessage, getSession, onAuthStateChange, signInWithGoogle, signOut } from '@/db/auth';
+import { llmProvidersRepository, type LlmProvider } from '@/db/apis';
 import { useStore } from '@/store';
 
 export default function HomeScreen() {
-  const { count, inc } = useStore()
+  const { count, inc } = useStore();
+  const [providers, setProviders] = useState<LlmProvider[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authActionLoading, setAuthActionLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  const loadProviders = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const data = await llmProvidersRepository.list();
+      setProviders(data);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '加载 LLM Providers 失败';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const loadSession = useCallback(async () => {
+    try {
+      setAuthLoading(true);
+      setAuthError(null);
+      const currentSession = await getSession();
+      setSession(currentSession);
+    } catch (err) {
+      setAuthError(getErrorMessage(err, '读取登录状态失败'));
+    } finally {
+      setAuthLoading(false);
+    }
+  }, []);
+
+  const handleGoogleLogin = useCallback(async () => {
+    try {
+      setAuthActionLoading(true);
+      setAuthError(null);
+
+      const result = await signInWithGoogle();
+      if (!result.cancelled) {
+        setSession(result.session);
+      }
+    } catch (err) {
+      setAuthError(getErrorMessage(err, 'Google 登录失败'));
+    } finally {
+      setAuthActionLoading(false);
+    }
+  }, []);
+
+  const handleSignOut = useCallback(async () => {
+    try {
+      setAuthActionLoading(true);
+      setAuthError(null);
+      await signOut();
+      setSession(null);
+    } catch (err) {
+      setAuthError(getErrorMessage(err, '退出登录失败'));
+    } finally {
+      setAuthActionLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadProviders();
+    loadSession();
+
+    const subscription = onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
+      setAuthLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [loadProviders, loadSession]);
+
+  const userEmail = session?.user?.email || '未获取邮箱';
+  const currentProvider = session?.user?.app_metadata?.provider || 'unknown';
 
   return (
     <ParallaxScrollView
@@ -23,17 +115,110 @@ export default function HomeScreen() {
       <View className="w-full bg-red-300 p-4 rounded-xl">
         <Text className="text-4xl text-black font-bold">测试啊</Text>
       </View>
-      <ThemedView style={styles.titleContainer}  >
 
-        <ThemedText onPress={() => inc()}
-          type="title">Welcome! simon {count}x休息下</ThemedText>
+      <ThemedView style={styles.titleContainer}>
+        <ThemedText onPress={() => inc()} type="title">
+          Welcome! simon {count}x休息下
+        </ThemedText>
         <HelloWave />
       </ThemedView>
+
+      <ThemedView style={styles.authCard}>
+        <ThemedText type="subtitle">账号登录</ThemedText>
+
+        {authLoading ? (
+          <View style={styles.centerRow}>
+            <ActivityIndicator />
+            <ThemedText> 正在检查登录状态...</ThemedText>
+          </View>
+        ) : session ? (
+          <View style={styles.authInfoBox}>
+            <ThemedText type="defaultSemiBold">已登录</ThemedText>
+            <ThemedText>邮箱：{userEmail}</ThemedText>
+            <ThemedText>登录方式：{currentProvider}</ThemedText>
+            <Pressable
+              disabled={authActionLoading}
+              onPress={handleSignOut}
+              style={[styles.primaryButton, styles.signOutButton]}>
+              <Text style={styles.primaryButtonText}>
+                {authActionLoading ? '处理中...' : '退出登录'}
+              </Text>
+            </Pressable>
+          </View>
+        ) : (
+          <View style={styles.authActions}>
+            <ThemedText>已接入 Google 登录，Apple 登录入口先预留。</ThemedText>
+            <Pressable
+              disabled={authActionLoading}
+              onPress={handleGoogleLogin}
+              style={styles.primaryButton}>
+              <Text style={styles.primaryButtonText}>
+                {authActionLoading ? '跳转中...' : '使用 Google 登录'}
+              </Text>
+            </Pressable>
+            <Pressable disabled style={[styles.secondaryButton, styles.disabledButton]}>
+              <Text style={styles.secondaryButtonText}>Apple 登录（稍后接入）</Text>
+            </Pressable>
+          </View>
+        )}
+
+        {authError ? (
+          <View style={styles.errorBox}>
+            <ThemedText type="defaultSemiBold">认证错误</ThemedText>
+            <ThemedText>{authError}</ThemedText>
+          </View>
+        ) : null}
+      </ThemedView>
+
+      <ThemedView style={styles.apiCard}>
+        <View style={styles.apiHeader}>
+          <ThemedText type="subtitle">LLM Providers API</ThemedText>
+          <Pressable onPress={loadProviders} style={styles.refreshButton}>
+            <Text style={styles.refreshButtonText}>{loading ? '加载中...' : '刷新'}</Text>
+          </Pressable>
+        </View>
+
+        {loading ? (
+          <View style={styles.centerRow}>
+            <ActivityIndicator />
+            <ThemedText> 正在加载 providers...</ThemedText>
+          </View>
+        ) : error ? (
+          <View style={styles.errorBox}>
+            <ThemedText type="defaultSemiBold">请求失败</ThemedText>
+            <ThemedText>{error}</ThemedText>
+          </View>
+        ) : providers.length === 0 ? (
+          <ThemedText>暂无 provider 数据</ThemedText>
+        ) : (
+          <View style={styles.providerList}>
+            {providers.map((provider) => (
+              <View key={provider.id} style={styles.providerItem}>
+                <View style={styles.providerTitleRow}>
+                  <ThemedText type="defaultSemiBold">{provider.name}</ThemedText>
+                  <Text
+                    style={[
+                      styles.statusBadge,
+                      provider.is_active ? styles.statusActive : styles.statusInactive,
+                    ]}>
+                    {provider.is_active ? '启用中' : '已停用'}
+                  </Text>
+                </View>
+                <ThemedText>模型：{provider.model}</ThemedText>
+                <ThemedText>Base URL：{provider.base_url || '默认'}</ThemedText>
+                <ThemedText>Temperature：{provider.temperature ?? '未设置'}</ThemedText>
+                <ThemedText>Max Tokens：{provider.max_tokens ?? '未设置'}</ThemedText>
+              </View>
+            ))}
+          </View>
+        )}
+      </ThemedView>
+
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Step 1: Try it</ThemedText>
         <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
+          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see
+          changes. Press{' '}
           <ThemedText type="defaultSemiBold">
             {Platform.select({
               ios: 'cmd + d',
@@ -95,6 +280,112 @@ const styles = StyleSheet.create({
   stepContainer: {
     gap: 8,
     marginBottom: 8,
+  },
+  authCard: {
+    gap: 12,
+    padding: 16,
+    borderRadius: 16,
+  },
+  authActions: {
+    gap: 12,
+  },
+  authInfoBox: {
+    gap: 8,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(120, 120, 128, 0.2)',
+  },
+  apiCard: {
+    gap: 12,
+    padding: 16,
+    borderRadius: 16,
+  },
+  apiHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  primaryButton: {
+    backgroundColor: '#2563eb',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  signOutButton: {
+    backgroundColor: '#111827',
+  },
+  primaryButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  secondaryButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(120, 120, 128, 0.35)',
+  },
+  secondaryButtonText: {
+    fontWeight: '600',
+  },
+  disabledButton: {
+    opacity: 0.55,
+  },
+  refreshButton: {
+    backgroundColor: '#2563eb',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+  },
+  refreshButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  centerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  errorBox: {
+    gap: 4,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+  },
+  providerList: {
+    gap: 12,
+  },
+  providerItem: {
+    gap: 6,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(120, 120, 128, 0.2)',
+  },
+  providerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  statusBadge: {
+    overflow: 'hidden',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  statusActive: {
+    backgroundColor: '#dcfce7',
+    color: '#166534',
+  },
+  statusInactive: {
+    backgroundColor: '#fee2e2',
+    color: '#991b1b',
   },
   reactLogo: {
     height: 178,

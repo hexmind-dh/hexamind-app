@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model LlmProvider {
+  id          String   @id @default(uuid())
+  name        String // LLM 提供商名称，如 OpenAI, Anthropic, Google 等
+  apiKey      String   @map("api_key")
+  baseUrl     String?  @map("base_url")
+  model       String // 模型名称，如 gpt-4, claude-3 等
+  isActive    Boolean  @default(true) @map("is_active")
+  maxTokens   Int?     @map("max_tokens") //最大 token 数
+  temperature Float?   @default(0.7) // 温度参数
+  config      Json? // 其他配置信息，JSON 格式
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([isActive])
+  @@map("llm_providers")
+}
