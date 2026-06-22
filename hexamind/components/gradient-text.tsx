@@ -21,7 +21,7 @@ export function GradientText({ size = 16, title = '' }: GradientTextProps) {
 
   return (
     <View style={styles.wrap}>
-      <MaskedView maskElement={<Text style={textStyle}>{title}</Text>}>
+      <MaskedView maskElement={<Text className='text-white' style={textStyle}>{title}</Text>}>
         <LinearGradient colors={[...GRADIENT_COLORS]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }}>
           <Text style={[...textStyle, { opacity: 0 }]}>{title}</Text>
         </LinearGradient>

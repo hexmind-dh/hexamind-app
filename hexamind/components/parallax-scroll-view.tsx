@@ -48,6 +48,7 @@ export default function ParallaxScrollView({
   return (
     <Animated.ScrollView
       ref={scrollRef}
+      className='w-full'
       style={{ backgroundColor, flex: 1 }}
       scrollEventThrottle={16}>
       {headerBackgroundColor && (

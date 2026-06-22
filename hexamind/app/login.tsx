@@ -42,15 +42,15 @@ export default function LoginScreen() {
     }
 
     return (
-        <View className="w-full h-screen flex-1 items-center pt-[20vh] gap-6 px-6">
+        <View className="w-full h-screen bg-[#050608f2] flex-1 items-center pt-[20vh] gap-6 px-6">
             <View className="gap-2.5">
                 <View className="flex-row flex-wrap items-center gap-1">
-                    <Text size={30} className="uppercase font-light tracking-[3px]">
+                    <Text size={30} className="uppercase font-light tracking-[3px] text-white">
                         HexaMind
                     </Text>
                     <GradientText size={30} title="易道流光" />
                 </View>
-                <Text className="text-xs uppercase tracking-[1.6px] opacity-50">
+                <Text size={14} className="uppercase tracking-[1.6px] text-white/50">
                     新一代仿生量子比特智能风险量化决策系统
                 </Text>
             </View>
@@ -59,7 +59,7 @@ export default function LoginScreen() {
                 {!authInitialized ? (
                     <View className="flex-row items-center">
                         <ActivityIndicator />
-                        <Text> 正在检查登录状态...</Text>
+                        <Text className='text-white'> 正在检查登录状态...</Text>
                     </View>
                 ) : (
                     <View className="gap-3">
@@ -75,7 +75,7 @@ export default function LoginScreen() {
                             disabled={authActionLoading !== null}
                             onPress={() => handleLogin('apple')}
                             className="items-center rounded-xl border border-white/20 px-3 py-3">
-                            <Text className="font-semibold">
+                            <Text className="font-semibold text-white">
                                 {authActionLoading === 'apple' ? '跳转中...' : '使用 Apple 登录'}
                             </Text>
                         </Pressable>
@@ -84,8 +84,8 @@ export default function LoginScreen() {
 
                 {authError ? (
                     <View className="gap-1 rounded-xl bg-red-500/10 p-3">
-                        <Text type="defaultSemiBold">认证错误</Text>
-                        <Text>{authError}</Text>
+                        <Text type="defaultSemiBold" className='text-white'>认证错误</Text>
+                        <Text className='text-white'>{authError}</Text>
                     </View>
                 ) : null}
             </View>
