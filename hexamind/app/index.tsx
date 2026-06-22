@@ -202,7 +202,7 @@ export default function IndexScreen() {
 
             <Pressable
               onPress={() => {
-                router.push('/detail')
+                router.push('/history')
               }}
               className="mt-3.5 relative flex flex-row items-center justify-center gap-1 rounded-md border border-white/10 bg-white h-[46] opacity-80"
             >
