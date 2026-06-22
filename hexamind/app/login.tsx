@@ -1,37 +1,23 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable } from 'react-native';
-import type { Session } from '@supabase/supabase-js';
+import { Redirect } from 'expo-router';
 
 import { GradientText } from '@/components/gradient-text';
 import { Text } from '@/components/themed-text';
 import { View } from '@/components/themed-view';
 import {
     getErrorMessage,
-    getSession,
-    onAuthStateChange,
     signInWithApple,
     signInWithGoogle,
-    signOut,
 } from '@/db/auth';
+import { useStore } from '@/store';
 
 export default function LoginScreen() {
-    const [session, setSession] = useState<Session | null>(null);
-    const [authLoading, setAuthLoading] = useState(true);
-    const [authActionLoading, setAuthActionLoading] = useState<'google' | 'apple' | 'signout' | null>(null);
+    const session = useStore((state) => state.session);
+    const authInitialized = useStore((state) => state.authInitialized);
+    const setSession = useStore((state) => state.setSession);
+    const [authActionLoading, setAuthActionLoading] = useState<'google' | 'apple' | null>(null);
     const [authError, setAuthError] = useState<string | null>(null);
-
-    const loadSession = useCallback(async () => {
-        try {
-            setAuthLoading(true);
-            setAuthError(null);
-            const currentSession = await getSession();
-            setSession(currentSession);
-        } catch (err) {
-            setAuthError(getErrorMessage(err, '读取登录状态失败'));
-        } finally {
-            setAuthLoading(false);
-        }
-    }, []);
 
     const handleLogin = useCallback(async (provider: 'google' | 'apple') => {
         try {
@@ -48,36 +34,11 @@ export default function LoginScreen() {
         } finally {
             setAuthActionLoading(null);
         }
-    }, []);
+    }, [setSession]);
 
-    const handleSignOut = useCallback(async () => {
-        try {
-            setAuthActionLoading('signout');
-            setAuthError(null);
-            await signOut();
-            setSession(null);
-        } catch (err) {
-            setAuthError(getErrorMessage(err, '退出登录失败'));
-        } finally {
-            setAuthActionLoading(null);
-        }
-    }, []);
-
-    useEffect(() => {
-        loadSession();
-
-        const subscription = onAuthStateChange((_event, nextSession) => {
-            setSession(nextSession);
-            setAuthLoading(false);
-        });
-
-        return () => {
-            subscription.unsubscribe();
-        };
-    }, [loadSession]);
-
-    const userEmail = session?.user?.email || '未获取邮箱';
-    const currentProvider = session?.user?.app_metadata?.provider || 'unknown';
+    if (authInitialized && session) {
+        return <Redirect href="/(tabs)" />;
+    }
 
     return (
         <View className="w-full h-screen flex-1 items-center pt-[30vh] gap-6 px-6">
@@ -94,25 +55,10 @@ export default function LoginScreen() {
             </View>
 
             <View className="gap-3 rounded-3xl w-full mt-[30vh] p-4">
-
-                {authLoading ? (
+                {!authInitialized ? (
                     <View className="flex-row items-center">
                         <ActivityIndicator />
                         <Text> 正在检查登录状态...</Text>
-                    </View>
-                ) : session ? (
-                    <View className="gap-2 rounded-xl border border-black/10 p-3">
-                        <Text type="defaultSemiBold">已登录</Text>
-                        <Text>邮箱：{userEmail}</Text>
-                        <Text>登录方式：{currentProvider}</Text>
-                        <Pressable
-                            disabled={authActionLoading !== null}
-                            onPress={handleSignOut}
-                            className="mt-1 items-center rounded-xl bg-slate-900 px-3 py-3">
-                            <Text className="font-semibold text-white">
-                                {authActionLoading === 'signout' ? '处理中...' : '退出登录'}
-                            </Text>
-                        </Pressable>
                     </View>
                 ) : (
                     <View className="gap-3">

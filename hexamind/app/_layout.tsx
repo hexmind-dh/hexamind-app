@@ -1,10 +1,13 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 import 'react-native-reanimated';
 import '../styles/global.css'
 
+import { getSession, onAuthStateChange } from '@/db/auth';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useStore } from '@/store';
 
 export const unstable_settings = {
   // anchor: '(tabs)',
@@ -13,13 +16,44 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const setSession = useStore((state) => state.setSession);
+  const setAuthInitialized = useStore((state) => state.setAuthInitialized);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const bootstrapAuth = async () => {
+      try {
+        const session = await getSession();
+        if (mounted) {
+          setSession(session);
+        }
+      } finally {
+        if (mounted) {
+          setAuthInitialized(true);
+        }
+      }
+    };
+
+    bootstrapAuth();
+
+    const subscription = onAuthStateChange((_event, session) => {
+      setSession(session);
+      setAuthInitialized(true);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [setAuthInitialized, setSession]);
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
-        {/* <Stack.Screen name="(tabs)" options={{ headerShown: false }} /> */}
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>
       <StatusBar style="auto" />
