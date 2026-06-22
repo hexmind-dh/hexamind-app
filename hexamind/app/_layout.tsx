@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import '../styles/global.css'
+import '@/i18n'
 
 import { getSession, onAuthStateChange } from '@/db/auth';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -18,6 +19,7 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   const setSession = useStore((state) => state.setSession);
   const setAuthInitialized = useStore((state) => state.setAuthInitialized);
+  const initializePreferences = useStore((state) => state.initializePreferences);
 
   useEffect(() => {
     let mounted = true;
@@ -36,6 +38,8 @@ export default function RootLayout() {
     };
 
     bootstrapAuth();
+    initializePreferences().catch(() => {
+    });
 
     const subscription = onAuthStateChange((_event, session) => {
       setSession(session);
@@ -46,7 +50,7 @@ export default function RootLayout() {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [setAuthInitialized, setSession]);
+  }, [initializePreferences, setAuthInitialized, setSession]);
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>

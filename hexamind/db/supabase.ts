@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage'
+import { safeStorage } from '@/utils/safe-storage'
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from './database.types'
 
@@ -16,47 +16,15 @@ export type Updates<
     T extends keyof Database['public']['Tables']
 > = Database['public']['Tables'][T]['Update']
 
-const memoryStorage = new Map<string, string>()
-let nativeStorageAvailable = true
-
 const safeAuthStorage = {
     async getItem(key: string) {
-        if (!nativeStorageAvailable) {
-            return memoryStorage.get(key) ?? null
-        }
-
-        try {
-            return await AsyncStorage.getItem(key)
-        } catch {
-            nativeStorageAvailable = false
-            return memoryStorage.get(key) ?? null
-        }
+        return safeStorage.getItem(key)
     },
     async setItem(key: string, value: string) {
-        memoryStorage.set(key, value)
-
-        if (!nativeStorageAvailable) {
-            return
-        }
-
-        try {
-            await AsyncStorage.setItem(key, value)
-        } catch {
-            nativeStorageAvailable = false
-        }
+        await safeStorage.setItem(key, value)
     },
     async removeItem(key: string) {
-        memoryStorage.delete(key)
-
-        if (!nativeStorageAvailable) {
-            return
-        }
-
-        try {
-            await AsyncStorage.removeItem(key)
-        } catch {
-            nativeStorageAvailable = false
-        }
+        await safeStorage.removeItem(key)
     },
 }
 

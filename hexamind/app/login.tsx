@@ -5,6 +5,7 @@ import { Redirect } from 'expo-router';
 import { GradientText } from '@/components/gradient-text';
 import { Text } from '@/components/themed-text';
 import { View } from '@/components/themed-view';
+
 import {
     getErrorMessage,
     signInWithApple,
@@ -37,11 +38,11 @@ export default function LoginScreen() {
     }, [setSession]);
 
     if (authInitialized && session) {
-        return <Redirect href="/(tabs)" />;
+        return <Redirect href="/" />;
     }
 
     return (
-        <View className="w-full h-screen flex-1 items-center pt-[30vh] gap-6 px-6">
+        <View className="w-full h-screen flex-1 items-center pt-[20vh] gap-6 px-6">
             <View className="gap-2.5">
                 <View className="flex-row flex-wrap items-center gap-1">
                     <Text size={30} className="uppercase font-light tracking-[3px]">
@@ -54,7 +55,7 @@ export default function LoginScreen() {
                 </Text>
             </View>
 
-            <View className="gap-3 rounded-3xl w-full mt-[30vh] p-4">
+            <View className="gap-3 rounded-3xl w-full mt-[40vh] p-4">
                 {!authInitialized ? (
                     <View className="flex-row items-center">
                         <ActivityIndicator />
@@ -65,7 +66,7 @@ export default function LoginScreen() {
                         <Pressable
                             disabled={authActionLoading !== null}
                             onPress={() => handleLogin('google')}
-                            className="items-center rounded-xl bg-blue-600 px-3 py-3">
+                            className="items-center rounded-xl bg-[#ef4444] px-3 py-3">
                             <Text className="font-semibold text-white">
                                 {authActionLoading === 'google' ? '跳转中...' : '使用 Google 登录'}
                             </Text>
