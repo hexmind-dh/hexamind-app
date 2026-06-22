@@ -6,15 +6,13 @@ import {
   Platform,
   Pressable,
   StyleSheet,
-  Text,
-  View,
 } from 'react-native';
 import type { Session } from '@supabase/supabase-js';
 
 import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { Text } from '@/components/themed-text';
+import { View } from '@/components/themed-view';
 import { getErrorMessage, getSession, onAuthStateChange, signInWithGoogle, signOut } from '@/db/auth';
 import { llmProvidersRepository, type LlmProvider } from '@/db/apis';
 import { useStore } from '@/store';
@@ -116,26 +114,26 @@ export default function HomeScreen() {
         <Text className="text-4xl text-black font-bold">测试啊</Text>
       </View>
 
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText onPress={() => inc()} type="title">
+      <View style={styles.titleContainer}>
+        <Text onPress={() => inc()} type="title">
           Welcome! simon {count}x休息下
-        </ThemedText>
+        </Text>
         <HelloWave />
-      </ThemedView>
+      </View>
 
-      <ThemedView style={styles.authCard}>
-        <ThemedText type="subtitle">账号登录</ThemedText>
+      <View style={styles.authCard}>
+        <Text type="subtitle">账号登录</Text>
 
         {authLoading ? (
           <View style={styles.centerRow}>
             <ActivityIndicator />
-            <ThemedText> 正在检查登录状态...</ThemedText>
+            <Text> 正在检查登录状态...</Text>
           </View>
         ) : session ? (
           <View style={styles.authInfoBox}>
-            <ThemedText type="defaultSemiBold">已登录</ThemedText>
-            <ThemedText>邮箱：{userEmail}</ThemedText>
-            <ThemedText>登录方式：{currentProvider}</ThemedText>
+            <Text type="defaultSemiBold">已登录</Text>
+            <Text>邮箱：{userEmail}</Text>
+            <Text>登录方式：{currentProvider}</Text>
             <Pressable
               disabled={authActionLoading}
               onPress={handleSignOut}
@@ -147,7 +145,7 @@ export default function HomeScreen() {
           </View>
         ) : (
           <View style={styles.authActions}>
-            <ThemedText>已接入 Google 登录，Apple 登录入口先预留。</ThemedText>
+            <Text>已接入 Google 登录，Apple 登录入口先预留。</Text>
             <Pressable
               disabled={authActionLoading}
               onPress={handleGoogleLogin}
@@ -164,15 +162,15 @@ export default function HomeScreen() {
 
         {authError ? (
           <View style={styles.errorBox}>
-            <ThemedText type="defaultSemiBold">认证错误</ThemedText>
-            <ThemedText>{authError}</ThemedText>
+            <Text type="defaultSemiBold">认证错误</Text>
+            <Text>{authError}</Text>
           </View>
         ) : null}
-      </ThemedView>
+      </View>
 
-      <ThemedView style={styles.apiCard}>
+      <View style={styles.apiCard}>
         <View style={styles.apiHeader}>
-          <ThemedText type="subtitle">LLM Providers API</ThemedText>
+          <Text type="subtitle">LLM Providers API</Text>
           <Pressable onPress={loadProviders} style={styles.refreshButton}>
             <Text style={styles.refreshButtonText}>{loading ? '加载中...' : '刷新'}</Text>
           </Pressable>
@@ -181,21 +179,21 @@ export default function HomeScreen() {
         {loading ? (
           <View style={styles.centerRow}>
             <ActivityIndicator />
-            <ThemedText> 正在加载 providers...</ThemedText>
+            <Text> 正在加载 providers...</Text>
           </View>
         ) : error ? (
           <View style={styles.errorBox}>
-            <ThemedText type="defaultSemiBold">请求失败</ThemedText>
-            <ThemedText>{error}</ThemedText>
+            <Text type="defaultSemiBold">请求失败</Text>
+            <Text>{error}</Text>
           </View>
         ) : providers.length === 0 ? (
-          <ThemedText>暂无 provider 数据</ThemedText>
+          <Text>暂无 provider 数据</Text>
         ) : (
           <View style={styles.providerList}>
             {providers.map((provider) => (
               <View key={provider.id} style={styles.providerItem}>
                 <View style={styles.providerTitleRow}>
-                  <ThemedText type="defaultSemiBold">{provider.name}</ThemedText>
+                  <Text type="defaultSemiBold">{provider.name}</Text>
                   <Text
                     style={[
                       styles.statusBadge,
@@ -204,35 +202,35 @@ export default function HomeScreen() {
                     {provider.is_active ? '启用中' : '已停用'}
                   </Text>
                 </View>
-                <ThemedText>模型：{provider.model}</ThemedText>
-                <ThemedText>Base URL：{provider.base_url || '默认'}</ThemedText>
-                <ThemedText>Temperature：{provider.temperature ?? '未设置'}</ThemedText>
-                <ThemedText>Max Tokens：{provider.max_tokens ?? '未设置'}</ThemedText>
+                <Text>模型：{provider.model}</Text>
+                <Text>Base URL：{provider.base_url || '默认'}</Text>
+                <Text>Temperature：{provider.temperature ?? '未设置'}</Text>
+                <Text>Max Tokens：{provider.max_tokens ?? '未设置'}</Text>
               </View>
             ))}
           </View>
         )}
-      </ThemedView>
+      </View>
 
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see
+      <View style={styles.stepContainer}>
+        <Text type="subtitle">Step 1: Try it</Text>
+        <Text>
+          Edit <Text type="defaultSemiBold">app/(tabs)/index.tsx</Text> to see
           changes. Press{' '}
-          <ThemedText type="defaultSemiBold">
+          <Text type="defaultSemiBold">
             {Platform.select({
               ios: 'cmd + d',
               android: 'cmd + m',
               web: 'F12',
             })}
-          </ThemedText>{' '}
+          </Text>{' '}
           to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
+        </Text>
+      </View>
+      <View style={styles.stepContainer}>
         <Link href="/modal">
           <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
+            <Text type="subtitle">Step 2: Explore</Text>
           </Link.Trigger>
           <Link.Preview />
           <Link.Menu>
@@ -253,20 +251,20 @@ export default function HomeScreen() {
           </Link.Menu>
         </Link>
 
-        <ThemedText>
+        <Text>
           {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
+        </Text>
+      </View>
+      <View style={styles.stepContainer}>
+        <Text type="subtitle">Step 3: Get a fresh start</Text>
+        <Text>
           {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
+          <Text type="defaultSemiBold">npm run reset-project</Text> to get a fresh{' '}
+          <Text type="defaultSemiBold">app</Text> directory. This will move the current{' '}
+          <Text type="defaultSemiBold">app</Text> to{' '}
+          <Text type="defaultSemiBold">app-example</Text>.
+        </Text>
+      </View>
     </ParallaxScrollView>
   );
 }

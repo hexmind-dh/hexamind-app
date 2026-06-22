@@ -1,0 +1,147 @@
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable } from 'react-native';
+import type { Session } from '@supabase/supabase-js';
+
+import { GradientText } from '@/components/gradient-text';
+import { Text } from '@/components/themed-text';
+import { View } from '@/components/themed-view';
+import {
+    getErrorMessage,
+    getSession,
+    onAuthStateChange,
+    signInWithApple,
+    signInWithGoogle,
+    signOut,
+} from '@/db/auth';
+
+export default function LoginScreen() {
+    const [session, setSession] = useState<Session | null>(null);
+    const [authLoading, setAuthLoading] = useState(true);
+    const [authActionLoading, setAuthActionLoading] = useState<'google' | 'apple' | 'signout' | null>(null);
+    const [authError, setAuthError] = useState<string | null>(null);
+
+    const loadSession = useCallback(async () => {
+        try {
+            setAuthLoading(true);
+            setAuthError(null);
+            const currentSession = await getSession();
+            setSession(currentSession);
+        } catch (err) {
+            setAuthError(getErrorMessage(err, '读取登录状态失败'));
+        } finally {
+            setAuthLoading(false);
+        }
+    }, []);
+
+    const handleLogin = useCallback(async (provider: 'google' | 'apple') => {
+        try {
+            setAuthActionLoading(provider);
+            setAuthError(null);
+
+            const result = provider === 'google' ? await signInWithGoogle() : await signInWithApple();
+
+            if (!result.cancelled) {
+                setSession(result.session);
+            }
+        } catch (err) {
+            setAuthError(getErrorMessage(err, `${provider === 'google' ? 'Google' : 'Apple'} 登录失败`));
+        } finally {
+            setAuthActionLoading(null);
+        }
+    }, []);
+
+    const handleSignOut = useCallback(async () => {
+        try {
+            setAuthActionLoading('signout');
+            setAuthError(null);
+            await signOut();
+            setSession(null);
+        } catch (err) {
+            setAuthError(getErrorMessage(err, '退出登录失败'));
+        } finally {
+            setAuthActionLoading(null);
+        }
+    }, []);
+
+    useEffect(() => {
+        loadSession();
+
+        const subscription = onAuthStateChange((_event, nextSession) => {
+            setSession(nextSession);
+            setAuthLoading(false);
+        });
+
+        return () => {
+            subscription.unsubscribe();
+        };
+    }, [loadSession]);
+
+    const userEmail = session?.user?.email || '未获取邮箱';
+    const currentProvider = session?.user?.app_metadata?.provider || 'unknown';
+
+    return (
+        <View className="w-full h-screen flex-1 items-center pt-[30vh] gap-6 px-6">
+            <View className="gap-2.5">
+                <View className="flex-row flex-wrap items-center gap-1">
+                    <Text size={30} className="uppercase font-light tracking-[3px]">
+                        HexaMind
+                    </Text>
+                    <GradientText size={30} title="易道流光" />
+                </View>
+                <Text className="text-xs uppercase tracking-[1.6px] opacity-50">
+                    新一代仿生量子比特智能风险量化决策系统
+                </Text>
+            </View>
+
+            <View className="gap-3 rounded-3xl w-full mt-[30vh] p-4">
+
+                {authLoading ? (
+                    <View className="flex-row items-center">
+                        <ActivityIndicator />
+                        <Text> 正在检查登录状态...</Text>
+                    </View>
+                ) : session ? (
+                    <View className="gap-2 rounded-xl border border-black/10 p-3">
+                        <Text type="defaultSemiBold">已登录</Text>
+                        <Text>邮箱：{userEmail}</Text>
+                        <Text>登录方式：{currentProvider}</Text>
+                        <Pressable
+                            disabled={authActionLoading !== null}
+                            onPress={handleSignOut}
+                            className="mt-1 items-center rounded-xl bg-slate-900 px-3 py-3">
+                            <Text className="font-semibold text-white">
+                                {authActionLoading === 'signout' ? '处理中...' : '退出登录'}
+                            </Text>
+                        </Pressable>
+                    </View>
+                ) : (
+                    <View className="gap-3">
+                        <Pressable
+                            disabled={authActionLoading !== null}
+                            onPress={() => handleLogin('google')}
+                            className="items-center rounded-xl bg-blue-600 px-3 py-3">
+                            <Text className="font-semibold text-white">
+                                {authActionLoading === 'google' ? '跳转中...' : '使用 Google 登录'}
+                            </Text>
+                        </Pressable>
+                        <Pressable
+                            disabled={authActionLoading !== null}
+                            onPress={() => handleLogin('apple')}
+                            className="items-center rounded-xl border border-white/20 px-3 py-3">
+                            <Text className="font-semibold">
+                                {authActionLoading === 'apple' ? '跳转中...' : '使用 Apple 登录'}
+                            </Text>
+                        </Pressable>
+                    </View>
+                )}
+
+                {authError ? (
+                    <View className="gap-1 rounded-xl bg-red-500/10 p-3">
+                        <Text type="defaultSemiBold">认证错误</Text>
+                        <Text>{authError}</Text>
+                    </View>
+                ) : null}
+            </View>
+        </View>
+    );
+}

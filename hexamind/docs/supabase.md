@@ -69,5 +69,5 @@ npx supabase gen types typescript --project-id your-project-id > types/supabase.
 ```sh
 export SUPABASE_ACCESS_TOKEN=你的\_ACCESS_TOKEN
 #
-SUPABASE_ACCESS_TOKEN=sbp_248d43c3bed0b773d0d3c5175b93017d222fcaa3  supabase gen types typescript --project-id leykejtjjvonuvqtbdtw  --schema public  > db/database.types.ts --debug
+SUPABASE_ACCESS_TOKEN=xxx  supabase gen types typescript --project-id leykejtjjvonuvqtbdtw  --schema public  > db/database.types.ts --debug
 ```
