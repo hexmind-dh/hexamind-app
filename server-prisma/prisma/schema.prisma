@@ -5,21 +5,154 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  // 新版不需要指定url
+  // url      = env("DATABASE_URL")
 }
 
-model LlmProvider {
-  id          String   @id @default(uuid())
-  name        String // LLM 提供商名称，如 OpenAI, Anthropic, Google 等
-  apiKey      String   @map("api_key")
-  baseUrl     String?  @map("base_url")
-  model       String // 模型名称，如 gpt-4, claude-3 等
-  isActive    Boolean  @default(true) @map("is_active")
-  maxTokens   Int?     @map("max_tokens") //最大 token 数
-  temperature Float?   @default(0.7) // 温度参数
-  config      Json? // 其他配置信息，JSON 格式
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+// ============================================================
+// 设计原则：
+//
+// 1. Supabase auth.users 是内置表，Prisma 不管理、不关联
+// 2. profiles 是业务用户表，id 与 auth.users.id 保持一致
+//    → 外键约束由 scripts/supabase-setup.sql 中的 raw SQL 创建
+//    → 新用户注册时由 trigger 自动插入 profile
+// 3. 所有业务表（divinations / chat_messages / subscriptions）
+//    通过 user_id 关联到 profiles.id
+// ============================================================
 
-  @@index([isActive])
-  @@map("llm_providers")
+// ---------- 用户资料 ----------
+// id 来自 Supabase auth.users，不由 Prisma 生成。
+// FK: profiles.id → auth.users.id 在 supabase-setup.sql 中手工创建。
+model profiles {
+  id                String    @id // 来自 auth.users，不自增
+  name              String?
+  email             String?
+  avatar_url        String?
+  provider          String? // 'google' | 'apple'
+  tier              String    @default("Free") // 'Free' | 'Pro'
+  daily_query_count Int       @default(0)
+  daily_query_date  DateTime?
+  last_query_at     DateTime?
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @default(now()) @updatedAt
+
+  divinations  divinations[]
+  chatMessages chat_messages[]
+  subscription subscriptions?
+
+  @@map("profiles")
+}
+
+// ---------- 占卜记录 ----------
+model divinations {
+  id       String @id @default(uuid())
+  user_id  String
+  question String
+  language String @default("en")
+
+  // 三才种子
+  temporal_seed_raw      BigInt
+  temporal_seed_hex      String?
+  latitude               Float   @default(31.23)
+  longitude              Float   @default(121.47)
+  spatial_seed_formatted String?
+  kinetic_seed_raw       Float   @default(1.23)
+
+  // 本卦
+  original_chart_name    String
+  original_chart_english String?
+  original_chart_symbol  String?
+  original_chart_lines   Json?
+  original_upper_trigram Json?
+  original_lower_trigram Json?
+
+  // 互卦
+  nuclear_chart_name    String?
+  nuclear_chart_english String?
+  nuclear_chart_symbol  String?
+  nuclear_chart_lines   Json?
+  nuclear_upper_trigram Json?
+  nuclear_lower_trigram Json?
+
+  // 变卦
+  transformed_chart_name    String?
+  transformed_chart_english String?
+  transformed_chart_symbol  String?
+  transformed_chart_lines   Json?
+  transformed_upper_trigram Json?
+  transformed_lower_trigram Json?
+
+  // 动爻
+  changing_line Int // 1-6
+
+  // 体用
+  ti_gua_role       String // 'Upper' | 'Lower'
+  ti_trigram_id     Int // 1-8
+  ti_trigram_name   String?
+  ti_element        String?
+  yong_gua_role     String
+  yong_trigram_id   Int
+  yong_trigram_name String?
+  yong_element      String?
+
+  // 体用生克关系
+  relationship_type                   String
+  relationship_conclusion             String // '用生体' | '体用比和' | '体生用' | '体克用' | '用克体'
+  relationship_auspiciousness         String
+  relationship_chinese_interpretation String?
+
+  // 三才置信度
+  confidence_score Float?
+
+  // AI 输出
+  ai_verdict               String?
+  ai_analysis              String?
+  ai_tactical_actions      Json?
+  ai_phenomenological_echo String?
+  ai_catalyst_window       String?
+
+  created_at DateTime @default(now())
+
+  user     profiles        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  messages chat_messages[]
+
+  @@index([user_id])
+  @@index([created_at(sort: Desc)])
+  @@index([user_id, created_at(sort: Desc)])
+  @@map("divinations")
+}
+
+// ---------- AI 聊天记录 ----------
+model chat_messages {
+  id            String   @id @default(uuid())
+  divination_id String
+  user_id       String
+  role          String // 'user' | 'model'
+  content       String
+  created_at    DateTime @default(now())
+
+  divination divinations @relation(fields: [divination_id], references: [id], onDelete: Cascade)
+  user       profiles    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([divination_id, created_at(sort: Asc)])
+  @@map("chat_messages")
+}
+
+// ---------- 订阅记录 ----------
+model subscriptions {
+  id                     String    @id @default(uuid())
+  user_id                String    @unique
+  tier                   String // 'Free' | 'Pro'
+  stripe_customer_id     String?
+  stripe_subscription_id String?
+  status                 String    @default("active") // 'active' | 'canceled' | 'expired' | 'trialing'
+  trial_ends_at          DateTime?
+  current_period_start   DateTime?
+  current_period_end     DateTime?
+  created_at             DateTime  @default(now())
+  updated_at             DateTime  @default(now()) @updatedAt
+
+  user profiles @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
 }

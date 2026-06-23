@@ -1,61 +1,258 @@
-import { useEffect, useState } from 'react';
-import { Pressable, TextInput, } from 'react-native';
-import { useTranslation } from 'react-i18next';
-
-import { Text } from '@/components/themed-text';
-import { View } from '@/components/themed-view';
-import { useStore } from '@/store';
-import { MainLayout } from '@/components/main-layout';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { GradientText } from '@/components/gradient-text';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { SubscriptionModal } from '@/components/subscription-modal';
-import { SettingsModal } from '@/components/settings-modal';
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Platform, Pressable, TextInput } from 'react-native'
+import { useTranslation } from 'react-i18next'
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from '@react-native-community/datetimepicker'
+import Toast from 'react-native-toast-message'
+import { router } from 'expo-router'
+import Ionicons from '@expo/vector-icons/Ionicons'
+import MaterialIcons from '@expo/vector-icons/MaterialIcons'
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons'
-import DateTimePicker from "@react-native-community/datetimepicker";
 import EvilIcons from '@expo/vector-icons/EvilIcons'
 import AntDesign from '@expo/vector-icons/AntDesign'
 import Feather from '@expo/vector-icons/Feather'
-import { Redirect, useRouter } from 'expo-router';
 
+import { Text } from '@/components/themed-text'
+import { View } from '@/components/themed-view'
+import { MainLayout } from '@/components/main-layout'
+import ParallaxScrollView from '@/components/parallax-scroll-view'
+import { GradientText } from '@/components/gradient-text'
+import { SubscriptionModal } from '@/components/subscription-modal'
+import { SettingsModal } from '@/components/settings-modal'
+import { useStore } from '@/store'
+import type { DivinationResult, DivinationHistoryItem } from '@/types'
+
+const DEFAULT_LAT = 31.23
+const DEFAULT_LNG = 121.47
 
 export default function IndexScreen() {
-  const userTier = useStore((state) => state.userTier);
-  const { t } = useTranslation();
-  const [subscriptionVisible, setSubscriptionVisible] = useState(false);
-  const [settingsVisible, setSettingsVisible] = useState(false);
-  const router = useRouter();
+  const { t } = useTranslation()
+  const userTier = useStore((state) => state.userTier)
+  const session = useStore((state) => state.session)
 
+  // == 模态框 ==
+  const [subscriptionVisible, setSubscriptionVisible] = useState(false)
+  const [settingsVisible, setSettingsVisible] = useState(false)
+
+  // == 输入状态 ==
+  const [question, setQuestion] = useState('')
+  const [timestamp, setTimestamp] = useState<number>(Date.now())
+  const [showDatePicker, setShowDatePicker] = useState(false)
+  const [showTimePicker, setShowTimePicker] = useState(false)
+
+  // == 空间定位 ==
+  const [latitude, setLatitude] = useState<number>(DEFAULT_LAT)
+  const [longitude, setLongitude] = useState<number>(DEFAULT_LNG)
+  const [gpsLoading, setGpsLoading] = useState(false)
+
+  // == 意念动能 ==
+  const [kineticSpeed, setKineticSpeed] = useState(1.23)
+  const [hasScratched, setHasScratched] = useState(false)
+
+  // == 执行状态 ==
+  const [isLoading, setIsLoading] = useState(false)
+
+  // ============================================
+  // 1. 自动获取 GPS
+  // ============================================
   useEffect(() => {
+    if (!navigator.geolocation) return
 
+    setGpsLoading(true)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLatitude(Number(pos.coords.latitude.toFixed(4)))
+        setLongitude(Number(pos.coords.longitude.toFixed(4)))
+        setGpsLoading(false)
+      },
+      () => {
+        // 获取失败则保持默认 (31.23, 121.47)
+        setGpsLoading(false)
+      },
+      { enableHighAccuracy: true, timeout: 8000 },
+    )
   }, [])
 
+  // ============================================
+  // 2. 时间选择
+  // ============================================
+  const handleDateChange = useCallback(
+    (_event: DateTimePickerEvent, selectedDate?: Date) => {
+      setShowDatePicker(false)
+      if (selectedDate) {
+        const newDate = new Date(timestamp)
+        newDate.setFullYear(selectedDate.getFullYear())
+        newDate.setMonth(selectedDate.getMonth())
+        newDate.setDate(selectedDate.getDate())
+        setTimestamp(newDate.getTime())
+      }
+    },
+    [timestamp],
+  )
+
+  const handleTimeChange = useCallback(
+    (_event: DateTimePickerEvent, selectedDate?: Date) => {
+      setShowTimePicker(false)
+      if (selectedDate) {
+        const newDate = new Date(timestamp)
+        newDate.setHours(selectedDate.getHours())
+        newDate.setMinutes(selectedDate.getMinutes())
+        newDate.setSeconds(0)
+        setTimestamp(newDate.getTime())
+      }
+    },
+    [timestamp],
+  )
+
+  // ============================================
+  // 3. 手写动能板（简化：点击模拟划动）
+  // ============================================
+  const handleKineticTap = useCallback(() => {
+    if (userTier !== 'Pro') {
+      setSubscriptionVisible(true)
+      return
+    }
+    setHasScratched(true)
+    // 模拟一个随机动能值
+    setKineticSpeed(Number((0.5 + Math.random() * 4.5).toFixed(3)))
+  }, [userTier])
+
+  // ============================================
+  // 4. 执行推演
+  // ============================================
+  const handleExecute = useCallback(async () => {
+    // 4a. 验证问题
+    if (!question.trim()) {
+      Toast.show({
+        type: 'error',
+        text1: t('pleaseStateQuestion'),
+        visibilityTime: 2000,
+      })
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const resolvedLat = userTier === 'Free' ? DEFAULT_LAT : latitude
+      const resolvedLng = userTier === 'Free' ? DEFAULT_LNG : longitude
+      const resolvedTs = timestamp || Date.now()
+
+      // 4b. 调用 /api/divinate 云函数
+      // 获取 Supabase session 的 access_token 传给服务端用于鉴权
+      const accessToken = session?.access_token
+
+      const response = await fetch('/api/divinate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+        body: JSON.stringify({
+          question: question.trim(),
+          latitude: resolvedLat,
+          longitude: resolvedLng,
+          kineticValue: kineticSpeed,
+          timestamp: resolvedTs,
+          language: 'zh-CN',
+        }),
+      })
+
+      const apiData = await response.json()
+
+      if (!apiData.success) {
+        throw new Error(apiData.error || '推演失败')
+      }
+
+      // 4c. 存入 store 用于详情页渲染
+      const resultId = apiData.recordId
+      const result: DivinationResult = {
+        success: true,
+        confidenceScore: apiData.confidenceScore,
+        input: apiData.input,
+        payload: apiData.payload,
+        aiOutput: apiData.aiOutput,
+      }
+
+      const historyItem: DivinationHistoryItem = {
+        id: resultId,
+        date: new Date(resolvedTs).toISOString(),
+        question: question.trim(),
+        originalGua: apiData.payload.charts.original.name,
+        conclusion: apiData.payload.relationship.conclusion,
+        auspiciousness: apiData.payload.relationship.auspiciousness,
+        confidenceScore: apiData.confidenceScore,
+        latitude: resolvedLat,
+        longitude: resolvedLng,
+        kineticValue: kineticSpeed,
+        timestamp: resolvedTs,
+      }
+
+      useStore.getState().setCurrentResult(resultId, result)
+      useStore.getState().addHistoryItem(historyItem)
+
+      // 4d. 跳转详情页
+      Toast.show({
+        type: 'success',
+        text1: '推演成功',
+        text2: '已保存到云端',
+        visibilityTime: 2000,
+      })
+      router.push(`/detail?id=${resultId}`)
+    } catch (err: any) {
+      console.error('Divination execution failed:', err)
+      Toast.show({
+        type: 'error',
+        text1: '推演失败',
+        text2: err?.message || t('errorGeneric'),
+        visibilityTime: 3000,
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }, [question, timestamp, latitude, longitude, kineticSpeed, userTier, session, t])
+
+  // ============================================
+  // Render
+  // ============================================
+  const isFree = userTier === 'Free'
+  const displayDate = new Date(timestamp)
 
   return (
     <MainLayout>
       <>
         <ParallaxScrollView>
           <View className="pt-[60] px-[28]">
+            {/* ===== 标题 ===== */}
             <View className="gap-2.5">
               <View className="flex-row flex-wrap items-center gap-1">
-                <Text size={30} className="text-white uppercase font-light tracking-[3px]">
+                <Text
+                  size={30}
+                  className="text-white uppercase font-light tracking-[3px]"
+                >
                   HexaMind
                 </Text>
                 <GradientText size={30} title="易道流光" />
               </View>
-              <Text size={12} className="text-white uppercase tracking-[1.6px] opacity-50">
+              <Text
+                size={12}
+                className="text-white uppercase tracking-[1.6px] opacity-50"
+              >
                 {t('appSubtitle')}
               </Text>
             </View>
 
+            {/* ===== 操作栏 ===== */}
             <View className="mt-2 ml-auto flex w-full flex-row items-center justify-end gap-2">
               <Pressable
                 onPress={() => setSubscriptionVisible(true)}
                 className="rounded-sm border border-slate-500/30 bg-slate-500/10 px-2.5 py-1.5 opacity-80"
               >
-                <Text size={12} className="text-white">{userTier === 'Pro' ? t('proEdition') : t('starterEdition')}</Text>
+                <Text size={12} className="text-white">
+                  {isFree ? t('starterEdition') : t('proEdition')}
+                </Text>
               </Pressable>
 
               <Pressable
@@ -63,162 +260,299 @@ export default function IndexScreen() {
                 className="relative items-center justify-center rounded-full border border-white/10 bg-white/5 p-2 opacity-80"
               >
                 <Ionicons name="settings" color="white" size={14} />
-                <View
-                  className="absolute right-0 top-0 h-2 w-2 rounded-full"
-                  style={{ backgroundColor: '#f59e0b' }}
-                />
+                <View className="absolute right-0 top-0 h-2 w-2 rounded-full bg-[#f59e0b]" />
               </Pressable>
 
-              <View className="items-center justify-center rounded-sm border border-white/10 bg-white/5 p-2 opacity-80">
+              <Pressable
+                onPress={() => router.push('/history')}
+                className="items-center justify-center rounded-sm border border-white/10 bg-white/5 p-2 opacity-80"
+              >
                 <MaterialIcons name="history" size={16} color="white" />
-              </View>
+              </Pressable>
             </View>
 
-            <View className="flex flex-row items-center gap-2 mt-2 mb-5">
+            {/* ===== 副标题 ===== */}
+            <View className="mt-2 mb-5 flex flex-row items-center gap-2">
               <Ionicons name="sparkles-sharp" size={12} color="#f59e0b" />
-              <Text className="text-white font-bold uppercase tracking-wider">
-                时空决策模型推演台
+              <Text className="font-bold uppercase tracking-wider text-white">
+                {t('decisionTitle') || '时空决策模型推演台'}
               </Text>
             </View>
 
-            <View className="p-3.5 rounded-sm border border-red-500/30" style={{ backgroundColor: 'rgba(251, 44, 54,0.02)' }}>
+            {/* ===== 1. 当前决策 ===== */}
+            <View
+              className="rounded-sm border border-red-500/30 p-3.5"
+              style={{ backgroundColor: 'rgba(251,44,54,0.02)' }}
+            >
               <View className="flex flex-row items-center justify-between">
-                <View className="flex flex-row items-center gap-2 font-mono font-bold uppercase tracking-wider"  >
-                  <SimpleLineIcons name="question" size={16} color="rgba(251,44,54,1)" />
-                  <Text style={{ color: "#fb2c36" }}>当前决策</Text>
+                <View className="flex flex-row items-center gap-2">
+                  <SimpleLineIcons name="question" size={16} color="#fb2c36" />
+                  <Text style={{ color: '#fb2c36' }} className="font-bold uppercase tracking-wider">
+                    {t('currentDecision')}
+                  </Text>
                 </View>
-                <MaterialCommunityIcons name="star-four-points" size={12} color="#90a1b9" />
+                <MaterialCommunityIcons
+                  name="star-four-points"
+                  size={12}
+                  color="#90a1b9"
+                />
               </View>
-              <View>
+
+              <View className="mt-3.5">
                 <TextInput
-                  className="p-2 rounded-sm mt-3.5 min-h-[60] max-h-[120] placeholder:text-white"
+                  className="min-h-[60] max-h-[120] rounded-sm p-2 placeholder:text-white/30"
                   style={{
                     backgroundColor: 'rgba(0,0,0,0.5)',
                     color: 'white',
                   }}
-                  multiline={true}
-                  placeholder='例如：该核心供应链采购合同在当前汇率条款下，本周五能否在低风险水平下闭环落地？'
+                  multiline
+                  value={question}
+                  onChangeText={setQuestion}
+                  placeholder={t('questionPlaceholder')}
+                  placeholderTextColor="rgba(255,255,255,0.3)"
                 />
               </View>
             </View>
 
-            <View className="mt-3.5 p-3.5 rounded-sm border border-[#ff6900]/30" style={{ backgroundColor: 'rgba(251, 44, 54,0.02)' }}>
+            {/* ===== 2. 时间时序 ===== */}
+            <View
+              className="mt-3.5 rounded-sm border border-[#ff6900]/30 p-3.5"
+              style={{ backgroundColor: 'rgba(251,44,54,0.02)' }}
+            >
               <View className="flex flex-row items-center justify-between">
-                <View className="flex flex-row items-center gap-2 font-mono font-bold uppercase tracking-wider"  >
+                <View className="flex flex-row items-center gap-2">
                   <MaterialIcons name="access-time" size={16} color="#ff6900" />
-                  <Text style={{ color: "#ff6900" }}>时间时序</Text>
+                  <Text style={{ color: '#ff6900' }} className="font-bold uppercase tracking-wider">
+                    {t('timeSequence')}
+                  </Text>
                 </View>
-                <View className="font-mono font-normal  border border-orange-500/30  px-1.5 py-0.5 rounded-sm transition-all  select-none" style={{ backgroundColor: "rgba(255, 105, 0,0.05)" }} >
-                  <Text style={{ color: "#ff6900" }}>注入时间轨迹</Text>
-                </View>
+                <Pressable
+                  onPress={() => setTimestamp(Date.now())}
+                  className="rounded-sm border border-orange-500/30 px-1.5 py-0.5"
+                  style={{ backgroundColor: 'rgba(255,105,0,0.05)' }}
+                >
+                  <Text style={{ color: '#ff6900' }} size={10}>
+                    {t('resetTime')}
+                  </Text>
+                </Pressable>
               </View>
-              <View className="p-2 rounded-sm mt-3.5 flex flex-row items-center justify-between border border-white/10" style={{
-                backgroundColor: 'rgba(0,0,0,0.5)',
-              }}>
-                <DateTimePicker
-                  className="w-full bg-transparent"
-                  value={new Date()}
-                  mode="date"
-                  display="default"
-                  onChange={() => { }}
-                />
+
+              {/* 日期 */}
+              <Pressable
+                onPress={() => setShowDatePicker(true)}
+                className="mt-3.5 flex flex-row items-center justify-between rounded-sm border border-white/10 p-2"
+                style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+              >
+                <Text className="text-white/80">
+                  {displayDate.toLocaleDateString('zh-CN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                  })}
+                </Text>
                 <AntDesign name="calendar" size={16} color="rgba(255,255,255,0.2)" />
-              </View>
+              </Pressable>
+
+              {/* 时间 */}
+              <Pressable
+                onPress={() => setShowTimePicker(true)}
+                className="mt-2 flex flex-row items-center justify-between rounded-sm border border-white/10 p-2"
+                style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+              >
+                <Text className="text-white/80">
+                  {displayDate.toLocaleTimeString('zh-CN', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </Text>
+                <MaterialIcons name="access-time" size={16} color="rgba(255,255,255,0.2)" />
+              </Pressable>
+
+              {showDatePicker && (
+                <DateTimePicker
+                  value={displayDate}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={handleDateChange}
+                />
+              )}
+              {showTimePicker && (
+                <DateTimePicker
+                  value={displayDate}
+                  mode="time"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={handleTimeChange}
+                />
+              )}
             </View>
 
-            <View className="mt-3.5 relative rounded-sm border border-[#2b7fff]/30" style={{ backgroundColor: 'rgba(251, 44, 54,0.02)' }}>
-              <View className="p-3.5  "  >
+            {/* ===== 3. 空间定位 ===== */}
+            <View
+              className="relative mt-3.5 rounded-sm border border-[#2b7fff]/30"
+              style={{ backgroundColor: 'rgba(251,44,54,0.02)' }}
+            >
+              <View className="p-3.5">
                 <View className="flex flex-row items-center justify-between">
-                  <View className="flex flex-row items-center gap-2 font-mono font-bold uppercase tracking-wider"  >
+                  <View className="flex flex-row items-center gap-2">
                     <EvilIcons name="location" size={16} color="#2b7fff" />
-                    <Text style={{ color: "#2b7fff" }}>空间定位</Text>
-                  </View>
-                  <View className="font-mono font-normal  border border-[#2b7fff]/30  px-1.5 py-0.5 rounded-sm transition-all  select-none" style={{ backgroundColor: "rgba(255, 105, 0,0.05)" }} >
-                    <Text style={{ color: "#2b7fff" }}>获取空间定位</Text>
-                  </View>
-                </View>
-                <View className="flex flex-row gap-4 w-full pt-4"  >
-                  <View className='flex-1'>
-                    <Text size={14} className="pb-2 text-white/50">
-                      纬度
+                    <Text style={{ color: '#2b7fff' }} className="font-bold uppercase tracking-wider">
+                      {t('spatialPositioning')}
                     </Text>
-                    <View className='rounded-sm   border border-white/10 h-[40] flex flex-row items-center px-2' style={{
-                      backgroundColor: 'rgba(0,0,0,0.5)',
-                    }}>
-                      <Text className='text-white/80'>- -</Text>
+                  </View>
+                  <Pressable
+                    onPress={() => {
+                      if (isFree) {
+                        setSubscriptionVisible(true)
+                        return
+                      }
+                      if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                          (pos) => {
+                            setLatitude(Number(pos.coords.latitude.toFixed(4)))
+                            setLongitude(Number(pos.coords.longitude.toFixed(4)))
+                          },
+                        )
+                      }
+                    }}
+                    className="rounded-sm border border-[#2b7fff]/30 px-1.5 py-0.5"
+                    style={{ backgroundColor: 'rgba(255,105,0,0.05)' }}
+                  >
+                    <Text style={{ color: '#2b7fff' }} size={10}>
+                      {gpsLoading ? t('locating') : t('getLocation')}
+                    </Text>
+                  </Pressable>
+                </View>
+
+                <View className="flex w-full flex-row gap-4 pt-4">
+                  <View className="flex-1">
+                    <Text size={14} className="pb-2 text-white/50">
+                      {t('latitude')}
+                    </Text>
+                    <View
+                      className="flex h-[40] flex-row items-center rounded-sm border border-white/10 px-2"
+                      style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+                    >
+                      <Text className="text-white/80">{latitude.toFixed(4)}</Text>
                     </View>
                   </View>
-                  <View className='flex-1'>
+                  <View className="flex-1">
                     <Text size={14} className="pb-2 text-white/50">
-                      经度
+                      {t('longitude')}
                     </Text>
-                    <View className='rounded-sm  border border-white/10 h-[40] flex flex-row items-center px-2' style={{
-                      backgroundColor: 'rgba(0,0,0,0.5)',
-                    }}>
-                      <Text className='text-white/80'>- -</Text>
+                    <View
+                      className="flex h-[40] flex-row items-center rounded-sm border border-white/10 px-2"
+                      style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+                    >
+                      <Text className="text-white/80">{longitude.toFixed(4)}</Text>
                     </View>
                   </View>
                 </View>
               </View>
-              {/* 未解锁 */}
-              <View className="opacity-100 absolute inset-0 backdrop-blur-lg z-25   rounded-sm border-2 border-dashed flex flex-col items-center justify-center p-4 text-center transition-all bg-black/90 border-neutral-700/80 text-neutral-400  ">
-                <View className="uppercase font-bold tracking-wider">
-                  <Text className='opacity-50 text-white'>空间定位已锁定</Text>
-                </View>
-                <View className="mt-1.5 leading-relaxed text-neutral-500 max-w-[260]">
-                  <Text size={14} className='opacity-50 text-center text-white'>
-                    入门版强制使用系统默认服务器坐标 (31.23, 121.47)。
+
+              {/* Free 锁定遮罩 */}
+              {isFree && (
+                <View className="absolute inset-0 z-25 flex flex-col items-center justify-center rounded-sm border-2 border-dashed border-neutral-700/80 bg-black/90 p-4">
+                  <Text className="text-white/50 uppercase tracking-wider font-bold">
+                    {t('locationLocked')}
+                  </Text>
+                  <Text
+                    size={14}
+                    className="mt-1.5 max-w-[260px] text-center leading-relaxed text-white/50"
+                  >
+                    {t('locationLockedDesc')}
                   </Text>
                 </View>
-              </View>
+              )}
             </View>
 
-            {/* 意念动能版 */}
-
-            <View className="mt-3.5 relative rounded-sm border border-[#ad46ff]/30" style={{ backgroundColor: 'rgba(251, 44, 54,0.02)' }}>
-              <View className="p-3.5  "  >
+            {/* ===== 4. 意念动能板 ===== */}
+            <View
+              className="relative mt-3.5 rounded-sm border border-[#ad46ff]/30"
+              style={{ backgroundColor: 'rgba(251,44,54,0.02)' }}
+            >
+              <View className="p-3.5">
                 <View className="flex flex-row items-center justify-between">
-                  <View className="flex flex-row items-center gap-2 font-mono font-bold uppercase tracking-wider"  >
+                  <View className="flex flex-row items-center gap-2">
                     <Feather name="activity" size={16} color="#ad46ff" />
-                    <Text className="text-[#ad46ff]">意念动能</Text>
+                    <Text style={{ color: '#ad46ff' }} className="font-bold uppercase tracking-wider">
+                      {t('kineticPad')}
+                    </Text>
                   </View>
+                  {hasScratched && (
+                    <Pressable
+                      onPress={() => {
+                        setHasScratched(false)
+                        setKineticSpeed(1.23)
+                      }}
+                      className="rounded-sm border border-purple-500/30 px-1.5 py-0.5"
+                    >
+                      <Text style={{ color: '#ad46ff' }} size={10}>
+                        {t('reset')}
+                      </Text>
+                    </Pressable>
+                  )}
                 </View>
-                <View className="flex flex-row items-center justify-center h-[60] rounded-s-md mt-4" style={{ backgroundColor: 'rgba(0,0,0,0.5)', }} >
-                  <Text size={12} className='opacity-30 text-white'>聚精会神，在此划动涂抹后松开</Text>
-                </View>
+
+                <Pressable
+                  onPress={handleKineticTap}
+                  className="mt-4 flex h-[60] flex-row items-center justify-center rounded-sm"
+                  style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+                >
+                  {hasScratched ? (
+                    <Text size={13} className="text-purple-400">
+                      {t('kineticValue')}：{kineticSpeed.toFixed(3)} m/s²
+                    </Text>
+                  ) : (
+                    <Text size={12} className="text-white/30">
+                      {t('kineticHint')}
+                    </Text>
+                  )}
+                </Pressable>
               </View>
-              {/* 未解锁 */}
-              <View className="opacity-100 absolute inset-0 backdrop-blur z-25   rounded-sm border-2 border-dashed flex flex-col items-center justify-center p-4 text-center transition-all bg-black/90 border-[#ad46ff]/40   ">
-                <View className="uppercase font-bold tracking-wider">
-                  <Text className='opacity-50 text-white'>意念动能板已锁定</Text>
-                </View>
-                <View className="mt-1.5 leading-relaxed text-neutral-500 max-w-[260]">
-                  <Text size={14} className='text-center text-white/50'>
-                    升级至专业顾问版以校准自定义触控动能编译面板。
+
+              {/* Free 锁定遮罩 */}
+              {isFree && (
+                <View className="absolute inset-0 z-25 flex flex-col items-center justify-center rounded-sm border-2 border-dashed border-[#ad46ff]/40 bg-black/90 p-4">
+                  <Text className="font-bold uppercase tracking-wider text-white/50">
+                    {t('kineticLocked')}
+                  </Text>
+                  <Text
+                    size={14}
+                    className="mt-1.5 max-w-[260px] text-center text-white/50 leading-relaxed"
+                  >
+                    {t('kineticLockedDesc')}
                   </Text>
                 </View>
-              </View>
+              )}
             </View>
 
+            {/* ===== 5. 执行按钮 ===== */}
             <Pressable
-              onPress={() => {
-                router.push('/history')
-              }}
-              className="mt-3.5 relative flex flex-row items-center justify-center gap-1 rounded-md border border-white/10 bg-white h-[46] opacity-80"
+              disabled={isLoading}
+              onPress={handleExecute}
+              className="mt-3.5 mb-8 flex h-[46] flex-row items-center justify-center gap-1 rounded-md border border-white/10 bg-white opacity-80"
             >
               <SimpleLineIcons name="compass" size={16} color="#000000" />
-              <Text size={18} className='text-center font-bold' style={{ color: "#000" }}>
-                执行系统决策矩阵推演
+              <Text
+                size={18}
+                className="text-center font-bold"
+                style={{ color: '#000' }}
+              >
+                {isLoading ? t('calculating') : t('executeDivination')}
               </Text>
             </Pressable>
-
           </View>
         </ParallaxScrollView>
 
-        <SubscriptionModal visible={subscriptionVisible} onClose={() => setSubscriptionVisible(false)} />
-
-        <SettingsModal visible={settingsVisible} onClose={() => setSettingsVisible(false)} />
+        <SubscriptionModal
+          visible={subscriptionVisible}
+          onClose={() => setSubscriptionVisible(false)}
+        />
+        <SettingsModal
+          visible={settingsVisible}
+          onClose={() => setSettingsVisible(false)}
+        />
       </>
     </MainLayout>
-  );
+  )
 }

@@ -112,7 +112,7 @@ export type Database = {
         }
         Insert: {
           id?: string
-          user_id: string
+          user_id?: string
           question: string
           language?: string
           temporal_seed_raw: number

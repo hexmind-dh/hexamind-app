@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, TextInput, View as RNView } from 'react-native';
+import { router } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
 
 import { Text } from '@/components/themed-text';
@@ -52,7 +53,7 @@ function StatusBadge({ data }: { data: StatusBadgeData }) {
   );
 }
 
-function HistoryRecordCard({ data }: { data: HistoryRecordData }) {
+function HistoryRecordCard({ data, onPress }: { data: HistoryRecordData; onPress?: () => void }) {
   const baseCard = data.isActive
     ? 'border-[#06b6d4] bg-[#161f32]'
     : 'border-neutral-850 bg-[#0d1322]';
@@ -62,7 +63,9 @@ function HistoryRecordCard({ data }: { data: HistoryRecordData }) {
     : '';
 
   return (
-    <Pressable className={`group relative min-h-[145px] cursor-pointer flex-col justify-between overflow-hidden rounded-sm border p-4 text-left transition-all ${baseCard} ${hoverEffect} ${shadowClass}`}>
+    <Pressable
+      onPress={onPress}
+      className={`group relative min-h-[145px] cursor-pointer flex-col justify-between overflow-hidden rounded-sm border p-4 text-left transition-all ${baseCard} ${hoverEffect} ${shadowClass}`}>
       {/* Delete button */}
       <View className="absolute right-3 top-3 z-10 rounded p-1 opacity-0 transition-all group-hover:opacity-100">
         <Feather name="trash-2" size={14} color="#737373" />
@@ -124,6 +127,16 @@ function HistoryRecordCard({ data }: { data: HistoryRecordData }) {
 export function HistoryList({ data }: { data: HistoryListData }) {
   const [search, setSearch] = useState('');
 
+  const filteredRecords = data.records.filter((r) => {
+    if (!search.trim()) return true
+    const q = search.toLowerCase()
+    return (
+      r.description.toLowerCase().includes(q) ||
+      r.hexagramName.toLowerCase().includes(q) ||
+      r.relationshipLabel.toLowerCase().includes(q)
+    )
+  })
+
   return (
     <View className="flex min-h-0 flex-1 flex-col bg-transparent p-4">
       {/* Search bar */}
@@ -146,8 +159,12 @@ export function HistoryList({ data }: { data: HistoryListData }) {
         contentContainerClassName="gap-3"
         showsVerticalScrollIndicator={true}
       >
-        {data.records.map((record) => (
-          <HistoryRecordCard key={record.id} data={record} />
+        {filteredRecords.map((record) => (
+          <HistoryRecordCard
+            key={record.id}
+            data={record}
+            onPress={() => router.push(`/detail?id=${record.id}`)}
+          />
         ))}
       </ScrollView>
     </View>

@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable } from 'react-native';
+import Toast from 'react-native-toast-message';
 import { Redirect } from 'expo-router';
 
 import { GradientText } from '@/components/gradient-text';
@@ -31,7 +32,14 @@ export default function LoginScreen() {
                 setSession(result.session);
             }
         } catch (err) {
-            setAuthError(getErrorMessage(err, `${provider === 'google' ? 'Google' : 'Apple'} 登录失败`));
+            const msg = getErrorMessage(err, `${provider === 'google' ? 'Google' : 'Apple'} 登录失败`);
+            setAuthError(msg);
+            Toast.show({
+                type: 'error',
+                text1: '登录失败',
+                text2: msg,
+                visibilityTime: 3000,
+            });
         } finally {
             setAuthActionLoading(null);
         }

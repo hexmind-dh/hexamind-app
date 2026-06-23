@@ -2,9 +2,12 @@ import type { Language } from '../types'
 
 export const commonMessages = {
   en: {
+    // == App ==
     appSubtitle: 'Next-Gen Quantum Risk & Decision Intelligence System',
     starterEdition: 'Starter Edition',
     proEdition: 'Pro Consultant',
+
+    // == Settings & Subscription ==
     settingsTitle: 'Settings & Language',
     subscriptionTitle: 'Subscription & Licensing',
     subscriptionSubtitle: 'Choose your current HexaMind access tier and unlock deeper decision support.',
@@ -33,11 +36,46 @@ export const commonMessages = {
     signInApple: 'Continue with Apple',
     signingIn: 'Opening sign-in...',
     close: 'Close',
+
+    // == Home Page ==
+    decisionTitle: 'Spatio-Temporal Decision Matrix Console',
+    currentDecision: 'Current Decision',
+    questionPlaceholder: 'e.g. Can this supply chain procurement contract be closed under current FX rates by Friday at low risk?',
+    timeSequence: 'Time Sequence',
+    resetTime: 'Reset to Now',
+    spatialPositioning: 'Spatial Positioning',
+    getLocation: 'Get Location',
+    locating: 'Locating...',
+    latitude: 'Latitude',
+    longitude: 'Longitude',
+    locationLocked: 'Spatial Locked',
+    locationLockedDesc: 'Free plan uses default server coordinates (31.23, 121.47).',
+    kineticPad: 'Kinetic Pad',
+    reset: 'Reset',
+    kineticValue: 'Kinetic Value',
+    kineticHint: 'Tap to inject kinetic energy',
+    kineticLocked: 'Kinetic Pad Locked',
+    kineticLockedDesc: 'Upgrade to Pro to calibrate custom kinetic input panel.',
+    executeDivination: 'Execute System Decision Matrix',
+    calculating: 'Calculating...',
+    pleaseStateQuestion: 'Please state your decision question first.',
+    errorGeneric: 'An error occurred. Please try again.',
+
+    // == Detail Page ==
+    loading: 'Loading...',
+    goBack: 'Go Back',
+
+    // == History Page ==
+    history: 'History',
+    searchHistory: 'Search hexagram name or question...',
   },
   'zh-CN': {
+    // == App ==
     appSubtitle: '新一代仿生量子比特智能风险量化决策系统',
     starterEdition: '入门体验版',
     proEdition: '专业顾问版',
+
+    // == Settings & Subscription ==
     settingsTitle: '设置与多语言',
     subscriptionTitle: '订阅与授权',
     subscriptionSubtitle: '选择当前 HexaMind 使用等级，解锁更完整的智能决策支持。',
@@ -66,11 +104,46 @@ export const commonMessages = {
     signInApple: '使用 Apple 继续',
     signingIn: '正在打开登录...',
     close: '关闭',
+
+    // == Home Page ==
+    decisionTitle: '时空决策模型推演台',
+    currentDecision: '当前决策',
+    questionPlaceholder: '例如：该核心供应链采购合同在当前汇率条款下，本周五能否在低风险水平下闭环落地？',
+    timeSequence: '时间时序',
+    resetTime: '重置到现在',
+    spatialPositioning: '空间定位',
+    getLocation: '获取空间定位',
+    locating: '定位中...',
+    latitude: '纬度',
+    longitude: '经度',
+    locationLocked: '空间定位已锁定',
+    locationLockedDesc: '入门版强制使用服务器默认坐标 (31.23, 121.47)。',
+    kineticPad: '意念动能',
+    reset: '重置',
+    kineticValue: '动能值',
+    kineticHint: '请点按以注入意念动能',
+    kineticLocked: '意念动能板已锁定',
+    kineticLockedDesc: '升级至专业顾问版以校准自定义触控动能编译面板。',
+    executeDivination: '执行系统决策矩阵推演',
+    calculating: '推演中...',
+    pleaseStateQuestion: '请输入决策问题',
+    errorGeneric: '发生错误，请重试。',
+
+    // == Detail Page ==
+    loading: '加载中...',
+    goBack: '返回',
+
+    // == History Page ==
+    history: '历史',
+    searchHistory: '搜索卦名或占问主题...',
   },
   'zh-TW': {
+    // == App ==
     appSubtitle: '新一代仿生量子位元智慧風險量化決策系統',
     starterEdition: '入門體驗版',
     proEdition: '專業顧問版',
+
+    // == Settings & Subscription ==
     settingsTitle: '設定與多語言',
     subscriptionTitle: '訂閱與授權',
     subscriptionSubtitle: '選擇目前的 HexaMind 使用等級，解鎖更完整的智慧決策支援。',
@@ -99,11 +172,46 @@ export const commonMessages = {
     signInApple: '使用 Apple 繼續',
     signingIn: '正在開啟登入...',
     close: '關閉',
+
+    // == Home Page ==
+    decisionTitle: '時空決策模型推演台',
+    currentDecision: '當前決策',
+    questionPlaceholder: '例如：該核心供應鏈採購合同在當前匯率條款下，本週五能否在低風險水準下閉環落地？',
+    timeSequence: '時間時序',
+    resetTime: '重設到現在',
+    spatialPositioning: '空間定位',
+    getLocation: '取得空間定位',
+    locating: '定位中...',
+    latitude: '緯度',
+    longitude: '經度',
+    locationLocked: '空間定位已鎖定',
+    locationLockedDesc: '入門版強制使用伺服器預設座標 (31.23, 121.47)。',
+    kineticPad: '意念動能',
+    reset: '重設',
+    kineticValue: '動能值',
+    kineticHint: '請點按以注入意念動能',
+    kineticLocked: '意念動能板已鎖定',
+    kineticLockedDesc: '升級至專業顧問版以校準自訂觸波動能編譯面板。',
+    executeDivination: '執行系統決策矩陣推演',
+    calculating: '推演中...',
+    pleaseStateQuestion: '請輸入決策問題',
+    errorGeneric: '發生錯誤，請重試。',
+
+    // == Detail Page ==
+    loading: '載入中...',
+    goBack: '返回',
+
+    // == History Page ==
+    history: '歷史',
+    searchHistory: '搜尋卦名或占問主題...',
   },
   id: {
+    // == App ==
     appSubtitle: 'Sistem keputusan risiko kuantum generasi baru',
     starterEdition: 'Edisi Pemula',
     proEdition: 'Konsultan Pro',
+
+    // == Settings & Subscription ==
     settingsTitle: 'Pengaturan & bahasa',
     subscriptionTitle: 'Langganan & lisensi',
     subscriptionSubtitle: 'Pilih tingkat akses HexaMind Anda saat ini.',
@@ -132,5 +240,37 @@ export const commonMessages = {
     signInApple: 'Lanjutkan dengan Apple',
     signingIn: 'Membuka masuk...',
     close: 'Tutup',
+
+    // == Home Page ==
+    decisionTitle: 'Konsol Matriks Keputusan Spatio-Temporal',
+    currentDecision: 'Keputusan Saat Ini',
+    questionPlaceholder: 'Contoh: Dapatkah kontrak pengadaan rantai pasokan ini ditutup pada hari Jumat dengan risiko rendah?',
+    timeSequence: 'Urutan Waktu',
+    resetTime: 'Atur ke Sekarang',
+    spatialPositioning: 'Posisi Spasial',
+    getLocation: 'Dapatkan Lokasi',
+    locating: 'Mencari lokasi...',
+    latitude: 'Lintang',
+    longitude: 'Bujur',
+    locationLocked: 'Posisi Terkunci',
+    locationLockedDesc: 'Paket gratis menggunakan koordinat default (31.23, 121.47).',
+    kineticPad: 'Papan Kinetik',
+    reset: 'Atur Ulang',
+    kineticValue: 'Nilai Kinetik',
+    kineticHint: 'Ketuk untuk menyuntikkan energi kinetik',
+    kineticLocked: 'Papan Kinetik Terkunci',
+    kineticLockedDesc: 'Tingkatkan ke Pro untuk menyesuaikan panel input kinetik.',
+    executeDivination: 'Jalankan Matriks Keputusan Sistem',
+    calculating: 'Menghitung...',
+    pleaseStateQuestion: 'Silakan masukkan pertanyaan keputusan Anda.',
+    errorGeneric: 'Terjadi kesalahan. Silakan coba lagi.',
+
+    // == Detail Page ==
+    loading: 'Memuat...',
+    goBack: 'Kembali',
+
+    // == History Page ==
+    history: 'Riwayat',
+    searchHistory: 'Cari nama heksagram atau pertanyaan...',
   },
 } satisfies Record<Language, Record<string, string>>
