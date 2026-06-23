@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable } from 'react-native';
 import Toast from 'react-native-toast-message';
-import { Redirect } from 'expo-router';
+import { Link, Redirect } from 'expo-router';
 
 import { GradientText } from '@/components/gradient-text';
 import { Text } from '@/components/themed-text';
@@ -18,6 +18,7 @@ export default function LoginScreen() {
     const session = useStore((state) => state.session);
     const authInitialized = useStore((state) => state.authInitialized);
     const setSession = useStore((state) => state.setSession);
+    const syncProfileFromSupabase = useStore((state) => state.syncProfileFromSupabase);
     const [authActionLoading, setAuthActionLoading] = useState<'google' | 'apple' | null>(null);
     const [authError, setAuthError] = useState<string | null>(null);
 
@@ -30,6 +31,9 @@ export default function LoginScreen() {
 
             if (!result.cancelled) {
                 setSession(result.session);
+                if (result.session?.user?.id) {
+                    syncProfileFromSupabase(result.session.user.id);
+                }
             }
         } catch (err) {
             const msg = getErrorMessage(err, `${provider === 'google' ? 'Google' : 'Apple'} 登录失败`);
@@ -43,14 +47,14 @@ export default function LoginScreen() {
         } finally {
             setAuthActionLoading(null);
         }
-    }, [setSession]);
+    }, [setSession, syncProfileFromSupabase]);
 
     if (authInitialized && session) {
         return <Redirect href="/" />;
     }
 
     return (
-        <View className="w-full h-screen bg-[#050608f2] flex-1 items-center pt-[20vh] gap-6 px-6">
+        <View className="w-full h-screen  flex-1 items-center pt-[20vh] gap-6 px-6">
             <View className="gap-2.5">
                 <View className="flex-row flex-wrap items-center gap-1">
                     <Text size={30} className="uppercase font-light tracking-[3px] text-white">
@@ -63,7 +67,7 @@ export default function LoginScreen() {
                 </Text>
             </View>
 
-            <View className="gap-3 rounded-3xl w-full mt-[40vh] p-4">
+            <View className="gap-3 w-full mt-[40vh] p-4">
                 {!authInitialized ? (
                     <View className="flex-row items-center">
                         <ActivityIndicator />
@@ -87,13 +91,19 @@ export default function LoginScreen() {
                                 {authActionLoading === 'apple' ? '跳转中...' : '使用 Apple 登录'}
                             </Text>
                         </Pressable>
+
+                        {/* 本地开发：邮箱登录入口 */}
+                        <Link href="/login-email" asChild>
+                            <Pressable className="items-center rounded-xl border border-white/10 px-3 py-2.5">
+                                <Text className="text-white/50 text-sm">邮箱密码登录（本地开发）</Text>
+                            </Pressable>
+                        </Link>
                     </View>
                 )}
 
                 {authError ? (
                     <View className="gap-1 rounded-xl bg-red-500/10 p-3">
-                        <Text type="defaultSemiBold" className='text-white'>认证错误</Text>
-                        <Text className='text-white'>{authError}</Text>
+                        <Text className='text-white/80 text-sm'>{authError}</Text>
                     </View>
                 ) : null}
             </View>

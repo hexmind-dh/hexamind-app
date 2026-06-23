@@ -96,6 +96,27 @@ export async function signInWithApple() {
   return signInWithOAuth('apple')
 }
 
+/** 邮箱密码登录 */
+export async function signInWithEmail(email: string, password: string) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+  if (error) throw error
+  return data.session
+}
+
+/** 邮箱注册 */
+export async function signUpWithEmail(email: string, password: string) {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: undefined, // 本地开发无需邮件验证
+    },
+  })
+  if (error) throw error
+  // 注意：首次注册时，session 可能为 null（取决于是否开启邮箱验证）
+  return data.session
+}
+
 export async function signOut() {
   const { error } = await supabase.auth.signOut()
   if (error) throw error

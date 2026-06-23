@@ -7,6 +7,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Text } from '@/components/themed-text';
 import { View } from '@/components/themed-view';
 import { useStore } from '@/store';
+import { profilesRepository } from '@/db/apis';
 
 interface SubscriptionModalProps {
   visible: boolean;
@@ -18,15 +19,22 @@ export function SubscriptionModal({ visible, onClose }: SubscriptionModalProps) 
   const setUserTier = useStore((state) => state.setUserTier);
   const { t } = useTranslation();
 
+  const session = useStore((state) => state.session);
+
   const handleUserTierChange = useCallback(
     async (tier: 'Free' | 'Pro') => {
       try {
+        // 写入本地
         await setUserTier(tier);
+        // 同步到 Supabase（profiles.tier）
+        if (session?.user?.id) {
+          await profilesRepository.setTier(session.user.id, tier);
+        }
       } catch {
         Alert.alert('HexaMind', '订阅状态保存失败');
       }
     },
-    [setUserTier]
+    [setUserTier, session]
   );
 
   const freeFeatures = [

@@ -11,6 +11,7 @@ import {
   syncI18nLanguage,
 } from '@/i18n'
 import type { DivinationResult, DivinationHistoryItem } from '@/types'
+import { profilesRepository } from '@/db/apis'
 
 const LANGUAGE_STORAGE_KEY = 'hexamind_lang'
 const USER_TIER_STORAGE_KEY = 'hexamind_user_tier'
@@ -27,11 +28,11 @@ type Store = {
   userTier: UserTier
   preferencesInitialized: boolean
 
-  // 导航时传递当前的占卜结果（不经过路由 params）
+  // 导航时传递当前的占卜结果
   currentResult: DivinationResult | null
   currentResultId: string | null
 
-  // 本地历史记录（后续会被云函数替换）
+  // 本地历史记录（作为 Supabase 读取的补充/降级）
   historyItems: DivinationHistoryItem[]
 
   inc: () => void
@@ -45,6 +46,9 @@ type Store = {
   clearCurrentResult: () => void
   addHistoryItem: (item: DivinationHistoryItem) => void
   loadHistoryFromStorage: () => Promise<void>
+
+  /** 从 Supabase 拉取用户资料并同步到 store */
+  syncProfileFromSupabase: (userId: string) => Promise<void>
 }
 
 export const useStore = create<Store>()((set, get) => ({
@@ -113,17 +117,26 @@ export const useStore = create<Store>()((set, get) => ({
     const state = get()
     const updated = [item, ...state.historyItems]
     set({ historyItems: updated })
-    // 持久化到本地存储
     safeStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(updated)).catch(() => {})
   },
   loadHistoryFromStorage: async () => {
     try {
       const raw = await safeStorage.getItem(HISTORY_STORAGE_KEY)
-      if (raw) {
-        set({ historyItems: JSON.parse(raw) })
-      }
+      if (raw) set({ historyItems: JSON.parse(raw) })
     } catch {
       // ignore
+    }
+  },
+
+  syncProfileFromSupabase: async (userId: string) => {
+    try {
+      const profile = await profilesRepository.getById(userId)
+      if (profile) {
+        set({ userTier: profile.tier === 'Pro' ? 'Pro' : 'Free' })
+        await safeStorage.setItem(USER_TIER_STORAGE_KEY, profile.tier)
+      }
+    } catch (err) {
+      console.error('syncProfileFromSupabase failed:', err)
     }
   },
 }))
