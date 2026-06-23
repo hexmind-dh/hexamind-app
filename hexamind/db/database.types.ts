@@ -1,3 +1,14 @@
+/**
+ * Supabase 数据库类型定义
+ *
+ * 对应 Prisma schema: server-prisma/prisma/schema.prisma
+ *
+ * 注意：
+ * - profiles.id 来自 auth.users（FK 由 raw SQL 创建，Prisma 不管理）
+ * - 业务表通过 user_id 关联到 profiles.id
+ * - daily_query_stats 为视图，由 raw SQL 创建
+ */
+
 export type Json =
   | string
   | number
@@ -9,6 +20,9 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      // ============================================
+      // profiles — 用户资料（id 来自 auth.users）
+      // ============================================
       profiles: {
         Row: {
           id: string
@@ -59,6 +73,10 @@ export type Database = {
           },
         ]
       }
+
+      // ============================================
+      // divinations — 占卜记录
+      // ============================================
       divinations: {
         Row: {
           id: string
@@ -220,6 +238,10 @@ export type Database = {
           },
         ]
       }
+
+      // ============================================
+      // chat_messages — AI 聊天记录
+      // ============================================
       chat_messages: {
         Row: {
           id: string
@@ -262,6 +284,10 @@ export type Database = {
           },
         ]
       }
+
+      // ============================================
+      // subscriptions — 订阅记录（Stripe 预留）
+      // ============================================
       subscriptions: {
         Row: {
           id: string
@@ -312,6 +338,10 @@ export type Database = {
           },
         ]
       }
+
+      // ============================================
+      // llm_providers — LLM 提供商配置（管理后台）
+      // ============================================
       llm_providers: {
         Row: {
           id: string
@@ -355,6 +385,10 @@ export type Database = {
         Relationships: []
       }
     }
+
+    // ============================================
+    // Views
+    // ============================================
     Views: {
       daily_query_stats: {
         Row: {
@@ -368,6 +402,7 @@ export type Database = {
         Relationships: []
       }
     }
+
     Functions: Record<string, never>
     Enums: Record<string, never>
     CompositeTypes: Record<string, never>
