@@ -139,7 +139,7 @@ export function SettingsModal({ visible, onClose }: SettingsModalProps) {
 
             <ScrollView showsVerticalScrollIndicator={false}>
               <View className="gap-5 bg-transparent">
-                <View className="rounded-3xl border border-white/10 bg-white/5 p-4">
+                <View className="rounded-3xl">
                   <Text className="mb-1 text-[11px] uppercase tracking-[2px] text-cyan-300">
                     {t('language')}
                   </Text>
@@ -150,9 +150,8 @@ export function SettingsModal({ visible, onClose }: SettingsModalProps) {
                   <View className="gap-2 bg-transparent">
                     <Pressable
                       onPress={() => handleLanguageSelect('auto')}
-                      className={`flex-row items-center justify-between rounded-2xl border px-4 py-3 ${
-                        languagePreference === 'auto' ? 'border-cyan-400/40 bg-cyan-400/10' : 'border-white/10 bg-white/5'
-                      }`}
+                      className={`flex-row items-center justify-between rounded-2xl border px-4 py-3 ${languagePreference === 'auto' ? 'border-cyan-400/40 bg-cyan-400/10' : 'border-white/10 bg-white/5'
+                        }`}
                     >
                       <View className="flex-row items-center gap-3 bg-transparent">
                         <Text className="text-lg">🌐</Text>
@@ -169,9 +168,8 @@ export function SettingsModal({ visible, onClose }: SettingsModalProps) {
                       <Pressable
                         key={item.code}
                         onPress={() => handleLanguageSelect(item.code as LanguagePreference)}
-                        className={`flex-row items-center justify-between rounded-2xl border px-4 py-3 ${
-                          item.active ? 'border-cyan-400/40 bg-cyan-400/10' : 'border-white/10 bg-white/5'
-                        }`}
+                        className={`flex-row items-center justify-between rounded-2xl border px-4 py-3 ${item.active ? 'border-cyan-400/40 bg-cyan-400/10' : 'border-white/10 bg-white/5'
+                          }`}
                       >
                         <Text className="text-sm text-white">{item.name}</Text>
                         <Ionicons
@@ -184,7 +182,7 @@ export function SettingsModal({ visible, onClose }: SettingsModalProps) {
                   </View>
                 </View>
 
-                <View className="rounded-3xl border border-white/10 bg-white/5 p-4">
+                <View className="rounded-3xl">
                   <Text className="mb-3 text-[11px] uppercase tracking-[2px] text-amber-300">
                     {t('account')}
                   </Text>
@@ -245,10 +243,6 @@ export function SettingsModal({ visible, onClose }: SettingsModalProps) {
                     </View>
                   )}
                 </View>
-
-                <Pressable onPress={onClose} className="items-center rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                  <Text className="font-medium text-white/80">{t('close')}</Text>
-                </Pressable>
               </View>
             </ScrollView>
           </View>

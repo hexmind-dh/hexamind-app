@@ -69,15 +69,32 @@ serve(async (req) => {
     // 2. 解析请求（只需 platform，不再需要 priceId）
     const { platform = 'app' } = await req.json()
 
-    // 3. 检查是否已 Pro
+    // 3. 检查是否已有有效订阅
+    // 必须 profiles.tier = Pro AND subscriptions 有 active 记录，才算会员
     const { data: profile } = await supabase
       .from('profiles')
       .select('tier')
       .eq('id', user.id)
       .single()
 
-    if (profile?.tier === 'Pro') {
+    const { data: sub } = await supabase
+      .from('subscriptions')
+      .select('status')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    const isActiveMember =
+      profile?.tier === 'Pro' &&
+      (sub?.status === 'active' || sub?.status === 'trialing')
+
+    if (isActiveMember) {
       return new Response(JSON.stringify({ error: 'Already a Pro member' }), { headers, status: 409 })
+    }
+
+    // 如果 profiles.tier = Pro 但无有效订阅 → 修复状态
+    if (profile?.tier === 'Pro' && (!sub || sub.status !== 'active')) {
+      console.warn('Fixing stale Pro tier for user:', user.id)
+      await supabase.from('profiles').update({ tier: 'Free' }).eq('id', user.id)
     }
 
     // 4. 查找或创建 Stripe Customer

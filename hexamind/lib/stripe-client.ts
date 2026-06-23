@@ -54,7 +54,19 @@ export async function createCheckoutSession(): Promise<string | null> {
 
     if (platform === 'app') {
       const result = await WebBrowser.openAuthSessionAsync(data.url, 'hexamind://payment/success')
-      return result.type === 'success' ? data.sessionId : null
+
+      if (result.type === 'success' && data.sessionId) {
+        // 支付成功 → 立即验证并激活会员
+        const verified = await verifySession(data.sessionId)
+        if (verified) {
+          Alert.alert('升级成功', '🎉 您已升级为 Pro 会员')
+          return data.sessionId
+        }
+        // verify 失败 → 不返回 sessionId，modal 不会显示成功
+        Alert.alert('激活失败', '支付已成功但激活会员时出错，请联系客服')
+        return null
+      }
+      return null
     }
 
     window.location.href = data.url
@@ -96,6 +108,28 @@ export async function openCustomerPortal(): Promise<boolean> {
   } catch (err) {
     console.error('openCustomerPortal error:', err)
     Alert.alert('错误', '无法打开管理页面')
+    return false
+  }
+}
+
+/**
+ * 验证 Checkout Session 并立即激活 Pro 会员
+ * 支付成功后由 success 页调用，不等 Webhook
+ */
+export async function verifySession(sessionId: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.functions.invoke('stripe-verify-session', {
+      body: { sessionId },
+    })
+
+    if (error || data?.error) {
+      console.error('verifySession error:', error || data?.error)
+      return false
+    }
+
+    return data?.success === true
+  } catch (err) {
+    console.error('verifySession error:', err)
     return false
   }
 }

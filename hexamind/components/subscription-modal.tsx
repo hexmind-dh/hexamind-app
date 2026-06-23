@@ -31,8 +31,7 @@ export function SubscriptionModal({ visible, onClose }: SubscriptionModalProps) 
     try {
       const sessionId = await createCheckoutSession();
       if (sessionId && session?.user?.id) {
-        // 支付成功，等 Webhook 同步数据后刷新 tier
-        await new Promise((resolve) => setTimeout(resolve, 3000));
+        // 支付 + 验证成功，刷新 store
         await syncProfileFromSupabase(session.user.id);
       }
     } finally {
@@ -46,7 +45,6 @@ export function SubscriptionModal({ visible, onClose }: SubscriptionModalProps) 
     try {
       const success = await openCustomerPortal();
       if (success && session?.user?.id) {
-        // 从 Portal 返回后刷新 tier（可能已取消/降级）
         await syncProfileFromSupabase(session.user.id);
       }
     } finally {
@@ -80,113 +78,132 @@ export function SubscriptionModal({ visible, onClose }: SubscriptionModalProps) 
   }, [setUserTier, session, t]);
 
   const freeFeatures = [
-    t('freeFeature1'),
-    t('freeFeature2'),
-    t('freeFeature3'),
+    '每天获取最多 3 次决策推演配额',
+    '固定的服务器时间和固定地理位置 (限制自定义 LBS)',
+    '锁定微波动能 (Kinetic Pad) 以防止混噪编译',
+    '会话记录仅在内存中保留 (无持久化数据库)',
+    '限制 Hexa AI Counsel 智能决策参谋阁聊天',
   ];
 
   const proFeatures = [
-    t('proFeature1'),
-    t('proFeature2'),
-    t('proFeature3'),
-    t('proFeature4'),
+    '解锁全功能 San-Cai 三才定位起步种子',
+    '支持自定义高精 LBS 地理与实时微波矢量',
+    '解锁 Hexa AI Chat Counsel Stateful 决策参谋阁',
+    '每月1日后台进行企业资产星曜矩阵算力编译',
+    '历史记录永久云持久化与 MAX_ADV 特种商业分类',
+    '附带7天免费体验期 (需要预绑定 Stripe 或 订阅支付)',
   ];
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable onPress={onClose} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.75)', padding: 20, justifyContent: 'center' }}>
+      <Pressable onPress={onClose} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', padding: 20, justifyContent: 'center' }}>
         <Pressable onPress={(e) => e.stopPropagation()}>
-          <View className="max-h-[88vh] rounded-[28px] border border-white/10 bg-[#0b0c10] px-5 py-5">
+          <View className="max-h-[90vh] rounded-lg border border-neutral-800 bg-[#0b0c0d] px-5 py-5 shadow-[0_0_80px_rgba(0,0,0,0.95)]" style={{ borderColor: 'rgba(38,38,38,1)' }}>
+            {/* Top accent bar */}
+            <View className="absolute top-0 left-0 w-full h-[4px] bg-neutral-700" />
+
+            {/* Close button */}
+            <Pressable
+              onPress={onClose}
+              className="absolute top-5 right-5 h-9 w-9 items-center justify-center rounded-full border border-neutral-800"
+            >
+              <Ionicons name="close" size={20} color="#a3a3a3" />
+            </Pressable>
+
             {/* Header */}
-            <View className="mb-4 flex-row items-start justify-between gap-4 bg-transparent">
-              <View className="flex-1 gap-2 bg-transparent">
-                <View className="self-start rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1">
-                  <Text className="text-[10px] uppercase tracking-[2px] text-amber-300">VIP</Text>
-                </View>
-                <Text size={22} className="font-semibold text-white">
-                  {t('subscriptionTitle')}
-                </Text>
-                <Text className="text-xs leading-5 text-white/60">
-                  {t('subscriptionSubtitle')}
-                </Text>
+            <View className="mt-8 mb-6 items-center bg-transparent">
+              <View className="mb-3 inline-flex flex-row items-center gap-1.5 self-center rounded-full border border-neutral-800 bg-neutral-900/50 px-3 py-1">
+                <Ionicons name="sparkles" size={14} color="#a3a3a3" />
+                <Text size={12} className="font-mono font-semibold uppercase tracking-[0.2em] text-neutral-300">VIP CLOUD MATRIX LICENSE</Text>
               </View>
-              <Pressable
-                onPress={onClose}
-                className="h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5"
-              >
-                <Ionicons name="close" size={18} color="white" />
-              </Pressable>
+              <Text className="text-center text-xl font-light uppercase tracking-[0.15em] text-white">
+                Hexamind <Text className="font-semibold text-neutral-400">专属特权顾问</Text>
+              </Text>
+              <Text className="mx-auto mt-2 max-w-lg text-center text-xs leading-relaxed text-neutral-500">
+                注入专属时空信号轨算力，解锁无限次预测、更高保真数字梅花算法，以及跨时间跨维度的智能决策建议卷轴。
+              </Text>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
-              <View className="gap-4 bg-transparent">
+              <View className="gap-6 bg-transparent">
                 {/* ===== Free Plan Card ===== */}
                 <View
-                  className={`rounded-3xl border p-4 ${
-                    userTier === 'Free' ? 'border-cyan-400/40 bg-cyan-400/10' : 'border-white/10 bg-white/5'
-                  }`}
+                  className={`rounded-md border p-5 ${userTier === 'Free' ? 'border-neutral-500 bg-neutral-900/40' : 'border-neutral-900 bg-black/30'
+                    }`}
                 >
-                  <View className="mb-3 flex-row items-start justify-between bg-transparent">
-                    <View className="gap-1 bg-transparent">
-                      <Text className="text-lg font-semibold text-white">{t('freePlan')}</Text>
-                      <Text className="text-xs text-white/55">{t('permanentFree')}</Text>
+                  {userTier === 'Free' && (
+                    <View className="mb-3 self-end rounded-full border border-neutral-500/30 bg-neutral-500/10 px-2 py-0.5">
+                      <Text className="text-[8px] font-mono font-bold uppercase tracking-widest text-neutral-400">CURRENT</Text>
                     </View>
-                    {userTier === 'Free' && (
-                      <View className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1">
-                        <Text className="text-[10px] uppercase tracking-[2px] text-cyan-300">
-                          {t('currentPlan')}
-                        </Text>
-                      </View>
-                    )}
+                  )}
+                  <View className="gap-1 bg-transparent">
+                    <Text className="text-xs font-mono font-bold uppercase tracking-widest text-neutral-400">入门体验版</Text>
+                    <Text className="text-[10px] text-neutral-500">核心功能初探体验</Text>
                   </View>
-                  <View className="mb-4 gap-2 bg-transparent">
+
+                  <View className="mb-5 mt-3 flex-row items-baseline gap-1">
+                    <Text className="font-mono text-2xl font-light tracking-tight text-neutral-400">$0.00</Text>
+                    <Text className="font-mono text-[10px] text-neutral-500">/ 永久免费</Text>
+                  </View>
+
+                  <View className="mb-5 border-t border-neutral-800 pt-4">
                     {freeFeatures.map((feature) => (
-                      <View key={feature} className="flex-row items-start gap-2 bg-transparent">
-                        <Ionicons name="checkmark-circle-outline" size={16} color="#67e8f9" style={{ marginTop: 1 }} />
-                        <Text className="flex-1 text-sm leading-5 text-white/75">{feature}</Text>
+                      <View key={feature} className="mb-2.5 flex-row items-start gap-2">
+                        <Ionicons name="checkmark" size={14} color="#a3a3a3" style={{ marginTop: 2 }} />
+                        <Text className="flex-1 text-xs leading-snug text-neutral-400">{feature}</Text>
                       </View>
                     ))}
                   </View>
+
                   <Pressable
                     disabled={userTier === 'Free'}
                     onPress={handleDowngradeToFree}
-                    className={`items-center rounded-2xl px-4 py-3 ${
-                      userTier === 'Free' ? 'bg-white/10' : 'bg-white'
-                    }`}
+                    className={`w-full items-center rounded-sm py-2.5 ${userTier === 'Free' ? 'border border-neutral-500/20 bg-neutral-500/10' : 'border border-neutral-700 bg-neutral-800'
+                      }`}
                   >
-                    <Text className={`font-semibold ${userTier === 'Free' ? 'text-white/45' : 'text-black'}`}>
-                      {userTier === 'Free' ? t('currentPlan') : t('switchToFree')}
+                    <Text className={`font-mono text-[10px] font-bold uppercase tracking-widest ${userTier === 'Free' ? 'text-neutral-500/70' : 'text-neutral-100'
+                      }`}>
+                      {userTier === 'Free' ? '当前活跃套餐' : '重置为体验版'}
                     </Text>
                   </Pressable>
                 </View>
 
                 {/* ===== Pro Plan Card ===== */}
                 <View
-                  className={`rounded-3xl border p-4 ${
-                    userTier === 'Pro' ? 'border-amber-400/40 bg-amber-400/10' : 'border-white/10 bg-white/5'
-                  }`}
+                  className={`rounded-md border mt-4 p-5 ${userTier === 'Pro' ? 'border-neutral-400 bg-neutral-900/60' : 'border-neutral-900 bg-black/30'
+                    }`}
                 >
-                  <View className="mb-3 flex-row items-start justify-between bg-transparent">
-                    <View className="gap-1 bg-transparent">
-                      <View className="flex-row items-center gap-2 bg-transparent">
-                        <MaterialIcons name="workspace-premium" size={18} color="#fbbf24" />
-                        <Text className="text-lg font-semibold text-white">{t('proPlan')}</Text>
-                      </View>
-                      <Text className="text-xs text-white/55">{t('unlimited')}</Text>
-                    </View>
-                    {userTier === 'Pro' && (
-                      <View className="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1">
-                        <Text className="text-[10px] uppercase tracking-[2px] text-amber-300">
-                          {t('currentPlan')}
-                        </Text>
-                      </View>
-                    )}
+                  {/* Executive Choice badge */}
+                  <View
+                    className="absolute right-5 z-10 -translate-y-1/2 rounded-full border border-neutral-700 bg-neutral-800 px-2.5 py-0.5"
+                    style={{ top: 0 }}
+                  >
+                    <Text className="font-mono text-[8px] font-bold uppercase tracking-widest text-neutral-200">EXECUTIVE CHOICE</Text>
                   </View>
-                  <View className="mb-4 gap-2 bg-transparent">
+
+                  {userTier === 'Pro' && (
+                    <View className="mb-3 self-end animate-pulse rounded-full border border-neutral-400/20 bg-neutral-400/10 px-2 py-0.5">
+                      <Text className="font-mono text-[8px] font-bold uppercase tracking-widest text-neutral-300">PRO PRESTIGE</Text>
+                    </View>
+                  )}
+                  <View className="gap-1 bg-transparent">
+                    <View className="flex-row items-center gap-1">
+                      <MaterialIcons name="workspace-premium" size={14} color="#a3a3a3" />
+                      <Text className="text-xs font-mono font-bold uppercase tracking-widest text-neutral-300">高级顾问企业版</Text>
+                    </View>
+                    <Text className="text-[10px] text-neutral-500">商业战略预测及决策顾问级别</Text>
+                  </View>
+
+                  <View className="mb-5 mt-3 flex-row items-baseline gap-1">
+                    <Text className="font-mono text-2xl font-light tracking-tight text-neutral-300">$49.99</Text>
+                    <Text className="font-mono text-[10px] text-neutral-500">/ 卓越无限</Text>
+                  </View>
+
+                  <View className="mb-5 border-t border-neutral-800 pt-4">
                     {proFeatures.map((feature) => (
-                      <View key={feature} className="flex-row items-start gap-2 bg-transparent">
-                        <Ionicons name="checkmark-circle-outline" size={16} color="#fbbf24" style={{ marginTop: 1 }} />
-                        <Text className="flex-1 text-sm leading-5 text-white/75">{feature}</Text>
+                      <View key={feature} className="mb-2.5 flex-row items-start gap-2">
+                        <Ionicons name="checkmark" size={14} color="#a3a3a3" style={{ marginTop: 2 }} />
+                        <Text className="flex-1 text-xs leading-snug text-neutral-400">{feature}</Text>
                       </View>
                     ))}
                   </View>
@@ -196,13 +213,13 @@ export function SubscriptionModal({ visible, onClose }: SubscriptionModalProps) 
                     <Pressable
                       disabled={managing}
                       onPress={handleManageSubscription}
-                      className="items-center rounded-2xl px-4 py-3 bg-white/10"
+                      className="w-full items-center rounded-sm border border-neutral-700 bg-neutral-800 py-2.5"
                     >
                       {managing ? (
                         <ActivityIndicator size="small" color="#fff" />
                       ) : (
-                        <Text className="font-semibold text-white/80">
-                          管理订阅
+                        <Text className="font-mono text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                          当前活跃套餐
                         </Text>
                       )}
                     </Pressable>
@@ -211,23 +228,41 @@ export function SubscriptionModal({ visible, onClose }: SubscriptionModalProps) 
                     <Pressable
                       disabled={paying}
                       onPress={handleUpgradeToPro}
-                      className="items-center rounded-2xl px-4 py-3 bg-amber-400"
+                      className="w-full items-center rounded-sm border border-neutral-800 bg-neutral-900 py-2.5"
                     >
                       {paying ? (
-                        <ActivityIndicator size="small" color="#000" />
+                        <ActivityIndicator size="small" color="#fff" />
                       ) : (
-                        <Text className="font-semibold text-black">
-                          {t('upgradeToPro') || '升级到 Pro'}
+                        <Text className="font-mono text-[10px] font-bold uppercase tracking-widest text-white">
+                          升级专业顾问版
                         </Text>
                       )}
                     </Pressable>
                   )}
                 </View>
 
+                {/* Security / Assurance bar */}
+                <View className="mt-2 flex-col items-center gap-3.5 rounded-sm border border-neutral-900 bg-white/[0.01] p-3.5 md:flex-row md:justify-between">
+                  <View className="flex-row items-center gap-2.5">
+                    <Ionicons name="shield-checkmark-outline" size={20} color="#a3a3a3" />
+                    <View>
+                      <Text className="font-sans text-[11px] font-bold text-white">100% 安全交易保障</Text>
+                      <Text className="font-mono text-[9px] text-neutral-500">全流程采用端到端量子非对称强加密进行授权，绝不泄露个人提问。</Text>
+                    </View>
+                  </View>
+                  <View className="flex-row items-center gap-3">
+                    <Text className="font-mono text-[10px] text-neutral-500">支付支持:</Text>
+                    <Text className="rounded-sm bg-neutral-400/10 px-1.5 py-0.5 font-mono text-xs font-bold tracking-widest text-neutral-400">Stripe</Text>
+                    <Text className="rounded-sm bg-neutral-400/10 px-1.5 py-0.5 font-mono text-xs font-bold tracking-widest text-neutral-400">ApplePay</Text>
+                  </View>
+                </View>
+
                 {/* Close Button */}
-                <Pressable onPress={onClose} className="mt-1 items-center rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                  <Text className="font-medium text-white/80">{t('close')}</Text>
-                </Pressable>
+                {/* <Pressable onPress={onClose} className="mt-6 items-center rounded-sm border border-neutral-800 px-5 py-2">
+                  <Text className="font-mono text-[9px] font-bold uppercase tracking-widest text-neutral-400">
+                    {t('close') || '关闭控制台'}
+                  </Text>
+                </Pressable> */}
               </View>
             </ScrollView>
           </View>

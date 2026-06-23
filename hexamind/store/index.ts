@@ -11,6 +11,7 @@ import {
   syncI18nLanguage,
 } from '@/i18n'
 import type { DivinationResult, DivinationHistoryItem } from '@/types'
+import { supabase } from '@/db/supabase'
 import { profilesRepository } from '@/db/apis'
 
 const LANGUAGE_STORAGE_KEY = 'hexamind_lang'
@@ -130,11 +131,30 @@ export const useStore = create<Store>()((set, get) => ({
 
   syncProfileFromSupabase: async (userId: string) => {
     try {
+      // 先查 profiles
       const profile = await profilesRepository.getById(userId)
-      if (profile) {
-        set({ userTier: profile.tier === 'Pro' ? 'Pro' : 'Free' })
-        await safeStorage.setItem(USER_TIER_STORAGE_KEY, profile.tier)
+      if (profile?.tier === 'Pro') {
+        set({ userTier: 'Pro' })
+        await safeStorage.setItem(USER_TIER_STORAGE_KEY, 'Pro')
+        return
       }
+
+      // 如果 profiles 是 Free，再查 subscriptions 兜底
+      const { data: sub } = await supabase
+        .from('subscriptions')
+        .select('tier, status')
+        .eq('user_id', userId)
+        .maybeSingle()
+
+      if (sub?.tier === 'Pro' || sub?.status === 'active' || sub?.status === 'trialing') {
+        set({ userTier: 'Pro' })
+        await safeStorage.setItem(USER_TIER_STORAGE_KEY, 'Pro')
+        return
+      }
+
+      // 确定是 Free
+      set({ userTier: 'Free' })
+      await safeStorage.setItem(USER_TIER_STORAGE_KEY, 'Free')
     } catch (err) {
       console.error('syncProfileFromSupabase failed:', err)
     }
