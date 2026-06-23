@@ -75,6 +75,9 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="login-email" options={{ headerShown: true, title: '邮箱登录' }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+        {/* 支付结果页 */}
+        <Stack.Screen name="payment/success" options={{ headerShown: false }} />
+        <Stack.Screen name="payment/cancel" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="auto" />
       <Toast
