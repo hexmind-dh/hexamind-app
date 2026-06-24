@@ -27,6 +27,8 @@ type Store = {
   language: Language
   languagePreference: LanguagePreference
   userTier: UserTier
+  /** userTier 是否已从服务端同步完成（防止缓存清后闪变 Free） */
+  userTierLoading: boolean
   preferencesInitialized: boolean
 
   // 导航时传递当前的占卜结果
@@ -59,6 +61,7 @@ export const useStore = create<Store>()((set, get) => ({
   language: detectPreferredLanguage(),
   languagePreference: 'auto',
   userTier: 'Free',
+  userTierLoading: true,
   preferencesInitialized: false,
 
   currentResult: null,
@@ -70,9 +73,8 @@ export const useStore = create<Store>()((set, get) => ({
   setAuthInitialized: (authInitialized) => set({ authInitialized }),
   initializePreferences: async () => {
     try {
-      const [savedLanguage, savedTier] = await Promise.all([
+      const [savedLanguage] = await Promise.all([
         safeStorage.getItem(LANGUAGE_STORAGE_KEY),
-        safeStorage.getItem(USER_TIER_STORAGE_KEY),
       ])
 
       if (!savedLanguage || savedLanguage === 'auto') {
@@ -85,7 +87,14 @@ export const useStore = create<Store>()((set, get) => ({
         syncI18nLanguage(normalized)
       }
 
-      set({ userTier: savedTier === 'Pro' ? 'Pro' : 'Free' })
+      // userTier: 不依赖缓存，让 syncProfileFromSupabase 从 DB 拉取权威数据
+      // 同步期间 userTierLoading=true，UI 勿展示锁定态
+      const session = get().session
+      if (session?.user?.id) {
+        get().syncProfileFromSupabase(session.user.id)
+      } else {
+        set({ userTier: 'Free', userTierLoading: false })
+      }
     } finally {
       set({ preferencesInitialized: true })
     }
@@ -131,15 +140,30 @@ export const useStore = create<Store>()((set, get) => ({
 
   syncProfileFromSupabase: async (userId: string) => {
     try {
-      // 先查 profiles
-      const profile = await profilesRepository.getById(userId)
-      if (profile?.tier === 'Pro') {
-        set({ userTier: 'Pro' })
+      // 1. 查 profiles，不存在则自动创建（Google/Apple OAuth 用户首次登录）
+      let profile = await profilesRepository.getById(userId)
+
+      if (!profile) {
+        const userMeta = get().session?.user?.user_metadata ?? {}
+        const userEmail = get().session?.user?.email ?? null
+        profile = await profilesRepository.create({
+          id: userId,
+          name: userMeta.full_name ?? userMeta.name ?? null,
+          email: userEmail,
+          avatar_url: userMeta.avatar_url ?? userMeta.picture ?? null,
+          provider: userMeta.provider ?? get().session?.user?.app_metadata?.provider ?? null,
+          tier: 'Free',
+        })
+      }
+
+      // 2. profiles 是 Pro → 直接返回
+      if (profile.tier === 'Pro') {
+        set({ userTier: 'Pro', userTierLoading: false })
         await safeStorage.setItem(USER_TIER_STORAGE_KEY, 'Pro')
         return
       }
 
-      // 如果 profiles 是 Free，再查 subscriptions 兜底
+      // 3. profiles 是 Free，再查 subscriptions 兜底（可能是支付后 webhook 更新了 subscriptions 但 profiles.tier 未同步）
       const { data: sub } = await supabase
         .from('subscriptions')
         .select('tier, status')
@@ -147,16 +171,20 @@ export const useStore = create<Store>()((set, get) => ({
         .maybeSingle()
 
       if (sub?.tier === 'Pro' || sub?.status === 'active' || sub?.status === 'trialing') {
-        set({ userTier: 'Pro' })
+        set({ userTier: 'Pro', userTierLoading: false })
+        // 同步修复 profiles.tier
+        await profilesRepository.setTier(userId, 'Pro')
         await safeStorage.setItem(USER_TIER_STORAGE_KEY, 'Pro')
         return
       }
 
-      // 确定是 Free
-      set({ userTier: 'Free' })
+      // 4. 确定是 Free
+      set({ userTier: 'Free', userTierLoading: false })
       await safeStorage.setItem(USER_TIER_STORAGE_KEY, 'Free')
     } catch (err) {
       console.error('syncProfileFromSupabase failed:', err)
+      // 同步失败时结束 loading，保持当前 userTier 不变
+      set({ userTierLoading: false })
     }
   },
 }))

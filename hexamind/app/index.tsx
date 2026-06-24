@@ -29,6 +29,7 @@ const DEFAULT_LNG = 121.47
 export default function IndexScreen() {
   const { t } = useTranslation()
   const userTier = useStore((state) => state.userTier)
+  const userTierLoading = useStore((state) => state.userTierLoading)
   const session = useStore((state) => state.session)
 
   // == 模态框 ==
@@ -177,7 +178,8 @@ export default function IndexScreen() {
   // ============================================
   // Render
   // ============================================
-  const isFree = userTier === 'Free'
+  // userTierLoading 期间不展示锁定态，等服务端同步完成后确定实际 tier
+  const isFree = !userTierLoading && userTier === 'Free'
   const displayDate = new Date(timestamp)
 
   return (

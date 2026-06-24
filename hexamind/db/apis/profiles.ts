@@ -22,6 +22,29 @@ export const profilesRepository = {
   /**
    * 获取单个用户资料
    */
+  /**
+   * 创建用户资料
+   */
+  async create(profile: ProfileInsert, client?: DbClient): Promise<Profile> {
+    const payload = removeUndefined({
+      ...profile,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+
+    const { data, error } = await getClient(client)
+      .from('profiles')
+      .insert(payload)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  /**
+   * 获取单个用户资料
+   */
   async getById(id: string, client?: DbClient): Promise<Profile | null> {
     const { data, error } = await getClient(client)
       .from('profiles')
