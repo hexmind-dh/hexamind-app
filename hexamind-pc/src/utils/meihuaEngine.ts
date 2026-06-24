@@ -255,12 +255,13 @@ export function runMeihuaCalculation(
 const STEMS = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
 const BRANCHES = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
 
-export function getGanzhiTime(timeMs: number): string {
-  const d = new Date(timeMs);
-  const year = d.getFullYear();
-  const month = d.getMonth() + 1; // 1-12
-  const date = d.getDate();
-  const hour = d.getHours();
+export function getGanzhiTime(timeMs: number, timezoneOffset?: number): string {
+  const effectiveOffset = timezoneOffset !== undefined ? timezoneOffset : new Date(timeMs).getTimezoneOffset();
+  const d = new Date(timeMs - effectiveOffset * 60000);
+  const year = d.getUTCFullYear();
+  const month = d.getUTCMonth() + 1; // 1-12
+  const date = d.getUTCDate();
+  const hour = d.getUTCHours();
 
   // Year Ganzhi
   let yearGanzhiIdx = (year - 4) % 60;
@@ -269,7 +270,7 @@ export function getGanzhiTime(timeMs: number): string {
   const yearBranch = BRANCHES[yearGanzhiIdx % 12];
 
   // Day Ganzhi
-  const localTimeMs = timeMs - d.getTimezoneOffset() * 60000;
+  const localTimeMs = timeMs - effectiveOffset * 60000;
   const localDaysSinceEpoch = Math.floor(localTimeMs / (1000 * 60 * 60 * 24));
   let dayGanzhiIdx = (localDaysSinceEpoch + 29) % 60; // Jan 1, 1970 was 癸巳 (index 29)
   if (dayGanzhiIdx < 0) dayGanzhiIdx += 60;

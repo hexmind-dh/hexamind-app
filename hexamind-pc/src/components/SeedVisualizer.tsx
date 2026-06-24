@@ -135,10 +135,16 @@ export default function SeedVisualizer({
         {/* Title */}
         <div className={`flex items-center justify-between border-b pb-2.5 mb-3.5 ${borderClass}`}>
           <div>
-            <span className="text-[10px] uppercase tracking-widest text-[#06b6d4] font-bold font-mono">
+            <span className={`tracking-widest text-rose-500 uppercase ${
+              (language.startsWith("zh") && (title.includes("卦") || title.includes("本") || title.includes("互") || title.includes("变")))
+                ? "font-classic-serif font-extrabold text-[13.5px]"
+                : "text-[10px] font-mono font-bold"
+            }`}>
               {title}
             </span>
-            <h3 className={`text-base font-serif font-medium mt-0.5 flex items-center gap-1.5 ${titleClass}`}>
+            <h3 className={`text-base mt-0.5 flex items-center gap-1.5 ${titleClass} ${
+              language.startsWith("zh") ? "font-classic-serif font-extrabold text-[17px] tracking-wide" : "font-sans font-medium"
+            }`}>
               {guaName}
               <span className={`text-[10px] font-mono font-medium ${subClass}`}>({symbol})</span>
             </h3>
@@ -159,11 +165,11 @@ export default function SeedVisualizer({
             const isChanging = changingLine === lineNum;
             const isFlipped = isTransformed && isChanging;
 
-            // Determine if we show amber glow or cyan active indicators
+            // Determine if we show rose/red active indicators for decision alignment
             const lineHighlightClass = isFlipped
-              ? "bg-[#06b6d4] shadow-[0_0_8px_rgba(6,182,212,0.6)]"
+              ? "bg-[#f43f5e] shadow-[0_0_8px_rgba(244,63,94,0.6)]"
               : isChanging
-              ? "bg-[#f59e0b] shadow-[0_0_8px_rgba(245,158,11,0.6)] animate-pulse"
+              ? "bg-[#f43f5e] shadow-[0_0_8px_rgba(244,63,94,0.6)]"
               : isDark 
               ? "bg-white/20 group-hover:bg-white/30" 
               : "bg-slate-200 group-hover:bg-slate-300";
@@ -173,9 +179,9 @@ export default function SeedVisualizer({
                 key={lineNum}
                 className={`flex items-center justify-center py-0.5 md:py-[1px] px-1 rounded-sm transition-all ${
                   isFlipped
-                    ? "bg-[#06b6d4]/10 border border-[#06b6d4]/20"
+                    ? "bg-[#f43f5e]/10 border border-[#f43f5e]/20"
                     : isChanging
-                    ? "bg-[#f59e0b]/10 border border-[#f59e0b]/20"
+                    ? "bg-[#f43f5e]/10 border border-[#f43f5e]/20"
                     : "border border-transparent"
                 }`}
               >
@@ -208,18 +214,18 @@ export default function SeedVisualizer({
               <span className={`font-semibold mb-0.5 text-[9px] tracking-wider ${subClass}`}>
                 {getLabelMap().upper}<span className="inline md:hidden">:</span>
               </span>
-              <div className={`flex items-center justify-between font-serif font-bold text-[9px] ${trigTitleClass}`}>
+              <div className={`flex items-center justify-between font-sans font-bold text-[9px] ${trigTitleClass}`}>
                 <span>{getTrigramDisplay(upperTrigram)}</span>
-                <span className="text-[#06b6d4] self-end text-[9px] font-mono font-normal">({getElementDisplay(upperTrigram.element)})</span>
+                <span className="text-slate-500 dark:text-white/60 self-end text-[9px] font-mono font-normal">({getElementDisplay(upperTrigram.element)})</span>
               </div>
             </div>
             <div className={`p-1.5 rounded-sm flex flex-col justify-between border ${trigBgClass}`} style={{ borderColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)" }}>
               <span className={`font-semibold mb-0.5 text-[9px] tracking-wider ${subClass}`}>
                 {getLabelMap().lower}<span className="inline md:hidden">:</span>
               </span>
-              <div className={`flex items-center justify-between font-serif font-bold text-[9px] ${trigTitleClass}`}>
+              <div className={`flex items-center justify-between font-sans font-bold text-[9px] ${trigTitleClass}`}>
                 <span>{getTrigramDisplay(lowerTrigram)}</span>
-                <span className="text-[#f59e0b] self-end text-[9px] font-mono font-normal">({getElementDisplay(lowerTrigram.element)})</span>
+                <span className="text-slate-500 dark:text-white/60 self-end text-[9px] font-mono font-normal">({getElementDisplay(lowerTrigram.element)})</span>
               </div>
             </div>
           </div>

@@ -52,7 +52,7 @@ export default function SubscriptionModal({
       >
         
         {/* Banner decorations for premium high-fidelity aesthetics in absolute grayscale */}
-        <div className={`absolute top-0 left-0 w-full h-[4px] ${isDark ? "bg-neutral-700" : "bg-neutral-300"} animate-pulse`} />
+        <div className={`absolute top-0 left-0 w-full h-[4px] ${isDark ? "bg-neutral-700" : "bg-neutral-300"}`} />
 
         {/* Close button with subtle outline */}
         <button
@@ -73,7 +73,7 @@ export default function SubscriptionModal({
             isDark
               ? "bg-neutral-900/50 text-neutral-300 border border-neutral-800"
               : "bg-neutral-100 text-neutral-650 border border-neutral-200"
-          } mb-3 animate-pulse`}>
+          } mb-3`}>
             <Sparkles className="w-3.5 h-3.5 text-neutral-400" />
             <span>VIP CLOUD MATRIX LICENSE</span>
           </div>
@@ -178,7 +178,7 @@ export default function SubscriptionModal({
                   <p className={`text-[10px] mt-0.5 ${isDark ? "text-neutral-500" : "text-neutral-500"}`}>商业战略预测及决策顾问级别</p>
                 </div>
                 {userTier === "Pro" && (
-                  <span className="text-[8px] font-mono font-bold px-2 py-0.5 rounded-sm bg-neutral-400/10 text-neutral-300 border border-neutral-400/20 tracking-widest uppercase animate-pulse">
+                  <span className="text-[8px] font-mono font-bold px-2 py-0.5 rounded-sm bg-neutral-400/10 text-neutral-300 border border-neutral-400/20 tracking-widest uppercase">
                     PRO PRESTIGE
                   </span>
                 )}

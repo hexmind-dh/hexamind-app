@@ -124,21 +124,23 @@ export default function HistoryPanel({
               onClick={onOpenSubscription}
               className={`cursor-pointer border border-dashed p-4 rounded-sm transition-all duration-300 relative text-center overflow-hidden min-h-[170px] flex flex-col justify-center items-center ${
                 isDark 
-                  ? "bg-[#0d1322] border-rose-500/20 hover:border-rose-500/50" 
-                  : "bg-slate-50 border-rose-450/30 hover:border-rose-450/60"
+                  ? "bg-black border-amber-500/15 hover:border-amber-500/45 text-neutral-200" 
+                  : "bg-slate-50 border-amber-500/15 hover:border-amber-500/40 text-slate-700"
               }`}
             >
-              <div className="absolute inset-0 bg-black/40 backdrop-blur-[4px] z-10 flex flex-col items-center justify-center p-4">
-                <Lock className="w-5 h-5 text-rose-500 mb-2 animate-bounce" />
-                <h4 className="text-[11px] font-mono tracking-wider font-bold text-rose-400 uppercase">🔒 {language.startsWith("zh") ? "历史决断卷轴闭锁" : "Locked History Ledger"}</h4>
-                <p className="text-[9px] leading-relaxed mt-1.5 max-w-[210px] text-center text-slate-350 font-sans">
+              <div className="absolute inset-0 bg-black/55 backdrop-blur-[4px] z-10 flex flex-col items-center justify-center p-4">
+                <Lock className="w-4 h-4 text-[#f59e0b] mb-2" />
+                <h4 className="text-xs font-mono tracking-wider font-bold text-amber-500 uppercase flex items-center gap-1.5">
+                  <span>{language.startsWith("zh") ? "历史决策阁闭锁" : "Locked History Ledger"}</span>
+                </h4>
+                <p className={`text-[10px] leading-relaxed mt-1.5 max-w-[220px] text-center font-sans ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
                   {language.startsWith("zh") 
-                    ? "升级至 专业顾问版 (Pro) 即可解锁历史决策卷轴、月度企业资产矩阵自动盘点及 Hexa AI 决策参谋阁上下文追踪。"
-                    : "Upgrade to Professional Plan to unlock the Historical Judgment Ledger, automated monthly matrix calculations, and deep Hexa AI context tracking."}
+                    ? "升级至 专业顾问版 (Pro) 即可解锁历史决策卷轴、季度高Res五行应期演算并启用 Hexa AI 决策参谋。"
+                    : "Upgrade to Professional Plan (Pro) to unlock your custom historical judgment ledger and continuous stateful Hexa AI tracking."}
                 </p>
                 <button 
                   type="button"
-                  className="mt-3.5 text-[8px] font-mono font-bold bg-gradient-to-r from-orange-500 to-purple-600 text-white px-3 py-1 rounded-sm uppercase tracking-wider hover:opacity-95 cursor-pointer"
+                  className="mt-3.5 text-[10px] font-sans font-bold bg-[#f59e0b] hover:bg-[#d97706] text-black px-4 py-1.5 rounded-sm uppercase tracking-wider transition-all duration-150 cursor-pointer shadow-md hover:shadow-[#f59e0b]/10"
                 >
                   {language.startsWith("zh") ? "开阁解锁顾问版" : "Upgrade to Pro"}
                 </button>
@@ -262,7 +264,7 @@ export default function HistoryPanel({
                   <div className={`flex flex-col gap-1.5 pt-2.5 border-t ${isDark ? "border-neutral-850" : "border-neutral-200/60"}`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
-                        <span className={`text-[10px] font-bold font-serif ${isDark ? "text-neutral-100" : "text-neutral-900"}`}>
+                        <span className={`text-[10px] font-bold font-sans ${isDark ? "text-neutral-100" : "text-neutral-900"}`}>
                           {item.originalGua}
                         </span>
                       </div>
@@ -278,7 +280,7 @@ export default function HistoryPanel({
 
                     {/* Resume Consultation Context Trigger button (Slides up beautifully inside card bounds on hover) */}
                     <div className="mt-1 flex justify-center max-h-0 opacity-0 group-hover:max-h-12 group-hover:opacity-100 transition-all duration-300 overflow-hidden">
-                      <span className="text-[9.2px] font-mono tracking-wider font-extrabold text-cyan-400 animate-[pulse_2s_infinite] flex items-center gap-1 uppercase">
+                      <span className="text-[9.2px] font-mono tracking-wider font-extrabold text-cyan-400 flex items-center gap-1 uppercase">
                         ⚡ {language.startsWith("zh") ? "[ 追踪事态 / Resume Consultation ]" : "[ Resume Consultation ]"}
                       </span>
                     </div>

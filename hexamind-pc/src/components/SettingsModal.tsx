@@ -160,7 +160,7 @@ export default function SettingsModal({
 
         {/* Success Alert */}
         {successMsg && (
-          <div className="mb-6 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-sm text-emerald-400 text-xs flex items-center gap-2 animate-pulse font-mono">
+          <div className="mb-6 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-sm text-emerald-400 text-xs flex items-center gap-2 font-mono">
             <CheckCircle2 className="w-4 h-4" />
             <span>{successMsg}</span>
           </div>
@@ -260,7 +260,7 @@ export default function SettingsModal({
                       disabled={authLoading !== null}
                       onClick={() => handleSocialLogin("Google")}
                       className={`p-2.5 rounded-sm border text-[10px] font-mono flex items-center justify-center gap-2 transition-all ${
-                        authLoading === "Google" ? "animate-pulse brightness-75 cursor-not-allowed" : itemBgClass
+                        authLoading === "Google" ? "brightness-75 cursor-not-allowed opacity-60" : itemBgClass
                       }`}
                     >
                       {authLoading === "Google" ? (
@@ -277,7 +277,7 @@ export default function SettingsModal({
                       disabled={authLoading !== null}
                       onClick={() => handleSocialLogin("Facebook")}
                       className={`p-2.5 rounded-sm border text-[10px] font-mono flex items-center justify-center gap-2 transition-all ${
-                        authLoading === "Facebook" ? "animate-pulse brightness-75 cursor-not-allowed" : itemBgClass
+                        authLoading === "Facebook" ? "brightness-75 cursor-not-allowed opacity-60" : itemBgClass
                       }`}
                     >
                       {authLoading === "Facebook" ? (
@@ -294,7 +294,7 @@ export default function SettingsModal({
                       disabled={authLoading !== null}
                       onClick={() => handleSocialLogin("Apple")}
                       className={`p-2.5 rounded-sm border text-[10px] font-mono flex items-center justify-center gap-2 transition-all ${
-                        authLoading === "Apple" ? "animate-pulse brightness-75 cursor-not-allowed" : itemBgClass
+                        authLoading === "Apple" ? "brightness-75 cursor-not-allowed opacity-60" : itemBgClass
                       }`}
                     >
                       {authLoading === "Apple" ? (

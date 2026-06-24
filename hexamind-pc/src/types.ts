@@ -93,6 +93,11 @@ export interface DivinationApiResponse {
     tacticalAction: string[];
     phenomenologicalEcho: string;
     catalystWindow: string;
+    yaoInfo?: {
+      yaoCi: string;
+      yaoExplanation: string;
+      developmentDirection: string;
+    };
   };
   error?: string;
 }
@@ -111,6 +116,11 @@ export interface DivinationHistoryItem {
     tacticalAction: string[];
     phenomenologicalEcho: string;
     catalystWindow: string;
+    yaoInfo?: {
+      yaoCi: string;
+      yaoExplanation: string;
+      developmentDirection: string;
+    };
   };
   latitude?: number;
   longitude?: number;

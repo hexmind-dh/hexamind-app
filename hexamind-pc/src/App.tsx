@@ -6,6 +6,7 @@ import SettingsModal from "./components/SettingsModal";
 import SubscriptionModal from "./components/SubscriptionModal";
 import { runMeihuaCalculation, getGanzhiTime, getLocalMeihuaAnalysis, calculateSanCaiConfidence, getWuXingRelationshipInterpretation } from "./utils/meihuaEngine";
 import { Language, translationDict } from "./utils/translations";
+import { getDetailedYaoExplanation } from "./utils/yaoExplanations";
 import { getAutomatedMonthlyPushes } from "./utils/automatedPushes";
 import { DivinationApiResponse, DivinationHistoryItem, DivinationPayload } from "./types";
 import { 
@@ -29,65 +30,65 @@ const getLanguageFontSettings = (lang: Language) => {
   switch (lang) {
     case "en":
       return {
-        fontSans: '"Times New Roman", "Times", "Georgia", serif',
-        fontSongti: '"Times New Roman", "Times", "Georgia", serif',
+        fontSans: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        fontSongti: '"Playfair Display", "Georgia", "Times New Roman", serif',
         letterSpacing: '0.015em',
         className: 'tracking-normal',
       };
     case "zh-CN":
       return {
-        fontSans: '"PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif',
-        fontSongti: '"PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif',
-        letterSpacing: '0.01em',
+        fontSans: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif',
+        fontSongti: '"Noto Serif SC", "Source Han Serif SC", "Source Han Serif CN", "Songti SC", "SimSun", "STSong", serif',
+        letterSpacing: '0.015em',
         className: 'tracking-normal',
       };
     case "zh-TW":
       return {
-        fontSans: '"PingFang TC", "Noto Sans TC", sans-serif',
-        fontSongti: '"PingFang TC", "Noto Sans TC", sans-serif',
+        fontSans: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "Hiragino Kaku Gothic ProN", "Microsoft JhengHei", "Noto Sans TC", sans-serif',
+        fontSongti: '"Noto Serif TC", "Source Han Serif TC", "Songti TC", "PMingLiU", "LiSong Pro", serif',
         letterSpacing: '0.05em',
         className: 'tracking-wider',
       };
     case "ja":
       return {
-        fontSans: '"Hiragino Sans", "Noto Sans JP", "Meiryo", sans-serif',
-        fontSongti: '"Hiragino Sans", "Noto Sans JP", "Meiryo", sans-serif',
+        fontSans: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans JP", "Meiryo", sans-serif',
+        fontSongti: '"Hiragino Mincho ProN", "Noto Serif JP", "MS Mincho", serif',
         letterSpacing: '0.01em',
         className: 'tracking-tight',
       };
     case "ko":
       return {
-        fontSans: '"Apple SD Gothic Neo", "Noto Sans KR", sans-serif',
-        fontSongti: '"Apple SD Gothic Neo", "Noto Sans KR", sans-serif',
+        fontSans: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif',
+        fontSongti: '"Batang", "AppleMyungjo", "Noto Serif KR", serif',
         letterSpacing: '0.015em',
         className: 'tracking-normal',
       };
     case "es":
       return {
-        fontSans: '"Times New Roman", "Times", "Georgia", serif',
-        fontSongti: '"Times New Roman", "Times", "Georgia", serif',
+        fontSans: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        fontSongti: '"Playfair Display", "Georgia", "Times New Roman", serif',
         letterSpacing: '0.01em',
         className: 'tracking-normal',
       };
     case "id":
     case "ms":
       return {
-        fontSans: '"Times New Roman", "Times", "Georgia", serif',
-        fontSongti: '"Times New Roman", "Times", "Georgia", serif',
+        fontSans: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        fontSongti: '"Playfair Display", "Georgia", "Times New Roman", serif',
         letterSpacing: '0.01em',
         className: 'tracking-normal',
       };
     case "th":
       return {
-        fontSans: '"Noto Sans Thai", "Sukhumvit Set", sans-serif',
-        fontSongti: '"Noto Sans Thai", "Sukhumvit Set", sans-serif',
+        fontSans: '"Noto Sans Thai", "Sukhumvit Set", system-ui, -apple-system, sans-serif',
+        fontSongti: '"Noto Sans Thai", "Sukhumvit Set", system-ui, -apple-system, sans-serif',
         letterSpacing: '0.01em',
         className: 'tracking-normal',
       };
     default:
       return {
-        fontSans: '"Times New Roman", "Times", "Georgia", serif',
-        fontSongti: '"Times New Roman", "Times", "Georgia", serif',
+        fontSans: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        fontSongti: '"Playfair Display", "Georgia", "Times New Roman", serif',
         letterSpacing: '0.015em',
         className: 'tracking-normal',
       };
@@ -141,6 +142,307 @@ const formatDateTimeForDisplay = (str: string, lang: string): string => {
 };
 
 
+const parseBoldText = (text: string, isDark: boolean) => {
+  if (!text) return <></>;
+  
+  // Clean formula symbols first
+  let cleaned = text
+    .replace(/\$\s*\\rightarrow\s*\$/g, " → ")
+    .replace(/\\rightarrow/g, " → ")
+    .replace(/\$\s*\\implies\s*\$/g, " ⇒ ")
+    .replace(/\\implies/g, " ⇒ ")
+    .replace(/\$\s*\\leftrightarrow\s*\$/g, " ↔ ")
+    .replace(/\\leftrightarrow/g, " ↔ ")
+    .replace(/->/g, " → ");
+
+  // Normalise mismatched markers like *some text** or **some text* or *some text* to standard **some text**
+  cleaned = cleaned.replace(/\*{1,3}([^*]+?)\*{1,3}/g, "**$1**");
+
+  // Split by standard ** blocks
+  const parts = cleaned.split(/\*\*([^*]+)\*\*/g);
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (i % 2 === 1) {
+          return (
+            <strong key={i} className={`font-semibold ${isDark ? "text-cyan-400 font-sans" : "text-cyan-700 font-sans"}`}>
+              {part}
+            </strong>
+          );
+        }
+        return part;
+      })}
+    </>
+  );
+};
+
+const renderMarkdownMessage = (content: string, isDark: boolean) => {
+  if (!content) return null;
+  const lines = content.split("\n");
+  const elements: React.ReactNode[] = [];
+  
+  let inCodeBlock = false;
+  let codeBlockLines: string[] = [];
+
+  for (let idx = 0; idx < lines.length; idx++) {
+    const line = lines[idx];
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith("```")) {
+      if (inCodeBlock) {
+        // Output code block
+        elements.push(
+          <pre 
+            key={`code-${idx}`} 
+            className={`p-3 my-2 text-[11.5px] rounded-sm border text-left leading-relaxed overflow-x-auto max-w-full ${
+              isDark 
+                ? "bg-slate-900/90 border-slate-800/80 text-slate-300" 
+                : "bg-slate-50 border-slate-200 text-slate-600"
+            }`}
+            style={{
+              fontFamily: 'SFMono-Regular, Consolas, "Liberation Mono", Menlo, Monaco, "Courier New", Courier, NSimSun, SimSun, monospace',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              letterSpacing: '0px'
+            }}
+          >
+            {codeBlockLines.join("\n")}
+          </pre>
+        );
+        codeBlockLines = [];
+        inCodeBlock = false;
+      } else {
+        inCodeBlock = true;
+      }
+      continue;
+    }
+
+    if (inCodeBlock) {
+      codeBlockLines.push(line);
+      continue;
+    }
+
+    // Process normal line elements
+    if (/^[-*_=]{2,}$/.test(trimmed)) {
+      elements.push(
+        <div key={idx} className="my-2 border-b border-dashed border-slate-200 dark:border-white/10" />
+      );
+      continue;
+    }
+
+    if (trimmed.startsWith("#")) {
+      const cleanHeader = trimmed.replace(/^#+\s*/, "");
+      elements.push(
+        <div 
+          key={idx} 
+          className="font-semibold mt-2.5 mb-1.5 text-xs text-cyan-400 dark:text-cyan-400 font-sans tracking-wide"
+        >
+          {cleanHeader}
+        </div>
+      );
+      continue;
+    }
+
+    if (trimmed.startsWith("-") || trimmed.startsWith("*")) {
+      const cleanBullet = trimmed.replace(/^[-*]\s*/, "");
+      elements.push(
+        <div key={idx} className={`flex items-start gap-1.5 pl-3 text-xs leading-relaxed text-left font-sans ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+          <span className="text-cyan-500/70 select-none shrink-0">•</span>
+          <span className={`flex-1 font-sans text-xs ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+            {parseBoldText(cleanBullet, isDark)}
+          </span>
+        </div>
+      );
+      continue;
+    }
+
+    if (line === "") {
+      elements.push(<div key={idx} className="h-1.5" />);
+      continue;
+    }
+
+    elements.push(
+      <div key={idx} className={`text-xs leading-relaxed text-left font-sans ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+        {parseBoldText(line, isDark)}
+      </div>
+    );
+  }
+
+  if (inCodeBlock && codeBlockLines.length > 0) {
+    elements.push(
+      <pre 
+        key="code-eof" 
+        className={`p-3 my-2 text-[11.5px] rounded-sm border text-left leading-relaxed overflow-x-auto max-w-full ${
+          isDark 
+            ? "bg-slate-900/90 border-slate-800/80 text-slate-300" 
+            : "bg-slate-50 border-slate-200 text-slate-600"
+        }`}
+        style={{
+          fontFamily: 'SFMono-Regular, Consolas, "Liberation Mono", Menlo, Monaco, "Courier New", Courier, NSimSun, SimSun, monospace',
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word',
+          letterSpacing: '0px'
+        }}
+      >
+        {codeBlockLines.join("\n")}
+      </pre>
+    );
+  }
+
+  return (
+    <div className="space-y-1 font-sans">
+      {elements}
+    </div>
+  );
+};
+
+const GREETINGS_BY_LANG: Record<string, {
+  leading: string;
+  rotating: string[];
+  suggestions: { label: string; text: string }[];
+}> = {
+  en: {
+    leading: "Director, the baseline matrix is secured.",
+    rotating: [
+      "What are you planning to do now?",
+      "Ask whatever you want to understand, feel free to ask.",
+      "How would you like to adjust your tactical variables?",
+      "We are ready to simulate the dynamic elements."
+    ],
+    suggestions: [
+      { label: "Ledger Credit Delay", text: "What if we extend the payment settlement period by 15 days or introduce a credit escrow?" },
+      { label: "Bilateral Contract Rewrite", text: "What if we restructure the service agreement with a strict 20% price buffer cap and penalty clauses?" },
+      { label: "In-source Sub-modules", text: "What if we reclaim outer sub-contracts and direct key logistics to internal teams?" },
+      { label: "Auspicious Horizon Delay", text: "What if we select an alternative auspicious window to avoid peaks of direct resistance?" }
+    ]
+  },
+  "zh-CN": {
+    leading: "",
+    rotating: [
+      "您现在准备怎么做？",
+      "想了解决策博弈或未来演化，尽管问吧。",
+      "打算如何调整您的策略变量？",
+      "已就位，随时可以仿真要素演化路径。"
+    ],
+    suggestions: [
+      { label: "延长结算账期", text: "如果我们将结算周期拉长15天，或者引入第三方信用担保以吸收攻势，博弈效果如何？" },
+      { label: "重组惩罚性条款", text: "如果我们在商务合约中强制增加20%的价格缓冲区，并写入严格的法律审计与违约罚则，会怎样？" },
+      { label: "收缩外包业务流", text: "如果我们停止非核心的外包，并收回至主体部分由我们自己团队管控，能否止住泄气？" },
+      { label: "调整交割时辰", text: "如果我们选择避开对方旺盛的时段，将交割交接时间作相应调整，会降低阻力吗？" }
+    ]
+  },
+  "zh-TW": {
+    leading: "",
+    rotating: [
+      "您現在準備怎麼做？",
+      "想瞭解決策博弈或未來演化，儘管問吧。",
+      "打算如何調整您的策略變量？",
+      "已就位，隨時可以仿真要素演化路徑。"
+    ],
+    suggestions: [
+      { label: "延長結算賬期", text: "如果我們將結算週期拉長15天，或者引入第三方信用擔保以吸收攻勢，博弈效果如何？" },
+      { label: "重組懲罰性條款", text: "如果我們在商務合約中強制增加20%的價格緩衝區，並寫入嚴格的法律審計與違約罰則，會怎樣？" },
+      { label: "收縮外包業務流", text: "如果我們停止非核心的外包，並收回至主體部分由我們自己團隊管控，能否止住洩氣？" },
+      { label: "調整交割時辰", text: "如果我們選擇避開對方旺盛的时段，將交割交接時間作相應調整，會降低阻力嗎？" }
+    ]
+  },
+  ja: {
+    leading: "ディレクター、時空間基準マトリクスは安全にロックされています。",
+    rotating: [
+      "これからどうする予定ですか？",
+      "知りたいことがあれば、何でもお聞きください。",
+      "戦術的変数をどのように調整しますか？",
+      "いつでも要素の進化軌道をシミュレートする準備ができています。"
+    ],
+    suggestions: [
+      { label: "決済バッファの延長", text: "決済期日を15日間延ばす、あるいは第三者信用保証付きエスクローを導入した場合、どのような影響がありますか？" },
+      { label: "ペナルティ条項の設定", text: "ビジネス契約に20％の厳格な価格バッファを設定し、監査・ペナルティ条項を強化するとどうなりますか？" },
+      { label: "アウトソースの回収", text: "非コア業務の外部委託を停止し、すべて自社コアチームでの内製管理に切り替えた場合の資金ロス防止効果は？" },
+      { label: "マイルストーンの再調整", text: "相手側のエネルギーが最も強い時間帯を避け、主要な引き渡しスケジュールを調整した場合、抵抗は減りますか？" }
+    ]
+  },
+  ko: {
+    leading: "디렉터, 시공간 기준 매트릭스가 성공적으로 잠겼습니다.",
+    rotating: [
+      "이제 어떻게 하실 계획인가요?",
+      "궁금한 점이 있다면 무엇이든 편하게 물어보세요.",
+      "전술적 변수를 어떻게 조정하고 싶으신가요?",
+      "언제든지 요소 결합 변화 시뮬레이션을 시작할 수 있습니다."
+    ],
+    suggestions: [
+      { label: "결제 기한 연장", text: "정산 주기를 15일 연장하거나 제3자 신용 담보 보증을 제공하면 대치 상황의 완화에 도움이 될까요?" },
+      { label: "패널티 조항 신설", text: "계약 조건에 20%의 가격 완충 마진을 의무적으로 반영하고 위약 벌칙 조항을 추가하면 어떻게 되나요?" },
+      { label: "아웃소싱 내재화", text: "비핵심 아웃소싱을 중단하고 자사 핵심 팀에서 직접 집중 관리하게 하면 자금 누출을 줄일 수 있을까요?" },
+      { label: "전달 시점 조정", text: "상대방의 에너지가 강한 시간을 비켜서 주요 마일스톤 진행 일정을 조정하면 마찰을 완화할 수 있나요?" }
+    ]
+  },
+  es: {
+    leading: "Director, la matriz de referencia temporal-espacial ya está asegurada.",
+    rotating: [
+      "¿Qué planeas hacer ahora?",
+      "Pregunta lo que quieras comprender, no dudes en consultar.",
+      "¿Cómo le gustaría ajustar sus variables operativas?",
+      "Estamos listos para simular los elementos en tiempo real."
+    ],
+    suggestions: [
+      { label: "Extender Plazo de Pago", text: "¿Qué pasa si extendemos el período de liquidación por 15 días o introducimos un garante de crédito?" },
+      { label: "Restructurar Cláusulas", text: "¿Qué pasa si hardcodeamos un buffer estricto del 20% e incorporamos auditorías legales de penalización?" },
+      { label: "Internalizar Servicios", text: "¿Qué pasa si revocamos contratos a terceras partes y centralizamos la logística clave con nuestro propio personal?" },
+      { label: "Reajustar Agenda Coincidente", text: "¿Qué pasa si retrasamos la fecha crítica para esquivar momentos de mayor fricción directa con la contraparte?" }
+    ]
+  },
+  id: {
+    leading: "Direktur, matriks dasar spasial-temporal kini telah dikunci.",
+    rotating: [
+      "Apa yang berencana Anda lakukan sekarang?",
+      "Tanyakan apa saja yang ingin Anda pahami, silakan bertanya.",
+      "Bagaimana Anda ingin menyesuaikan variabel taktis Anda?",
+      "Kami siap menyimulasikan jalur evolusi elemen secara real-time."
+    ],
+    suggestions: [
+      { label: "Perpanjang Tempo Pembayaran", text: "Bagaimana jika kita memperpanjang periode pembayaran selama 15 hari atau memperkenalkan penjamin kredit?" },
+      { label: "Penyesuaian Ketentuan Hukum", text: "Bagaimana jika kita memberlakukan batas harga 20% yang ketat serta klausul denda ke dalam kontrak kerja sama?" },
+      { label: "Sentralisasi Outsource", text: "Bagaimana jika kita mengambil alih pekerjaan outsourcing non-inti untuk dikelola tim internal utama agar tidak bocor?" },
+      { label: "Penyesuaian Waktu Pengiriman", text: "Bagaimana jika kita menjadwal ulang pengiriman tonggak penting demi menghindari benturan waktu langsung?" }
+    ]
+  },
+  ms: {
+    leading: "Pengarah, matriks rujukan temporal-spasial kini telah dikunci.",
+    rotating: [
+      "Apakah tindakan anda seterusnya?",
+      "Tanyalah apa-apa sahaja yang ingin anda fahami, silakan bertanya.",
+      "Bagaimanakah anda ingin melaraskan pembolehubah taktikal anda?",
+      "Pusat simulasi kami sedia meramalkan evolusi elemen secara dinamik."
+    ],
+    suggestions: [
+      { label: "Panjangkan Tempoh Bayaran", text: "Bagaimanakah jika kita melanjutkan tempoh matang bil sebanyak 15 hari atau melantik pihak ketiga sebagai penjamin?" },
+      { label: "Struktur Semula Kontrak", text: "Bagaimanakah jika kita menambah had zon penampan harga 20% yang tegas serta membina klausa penalti dalam rundingan?" },
+      { label: "Kawal Outsource Luaran", text: "Bagaimanakah jika kita menghentikan rantaian sub-kontrak bukan teras dan menyerap sepenuhnya ke dalam pengurusan dalaman?" },
+      { label: "Selaras Jadual Penghantaran", text: "Bagaimanakah jika kita mengubah suai waktu serahan projek penting bagi mengelakkan pertentangan secara terus?" }
+    ]
+  },
+  th: {
+    leading: "ผู้อำนวยการ มิติอ้างอิงช่วงเวลาและพื้นที่ถูกจัดเตรียมอย่างสมบูรณ์แล้ว",
+    rotating: [
+      "คุณวางแผนจะทำอย่างไรต่อไป?",
+      "ต้องการทำความเข้าใจเรื่องใด ถามมาได้เลย",
+      "คุณต้องการปรับเปลี่ยนตัวแปรทางกลยุทธ์อย่างไร?",
+      "เราพร้อมวิเคราะห์ผลลัพธ์ขององค์ประกอบในโลกความเป็นจริงแล้ว"
+    ],
+    suggestions: [
+      { label: "ขยายเวลาการชำระเงิน", text: "ถ้าเรายืดระยะเวลาชำระเงินออกไปอีก 15 วัน หรือแต่งตั้งบุคคลที่สามเป็นผู้ค้ำประกันการชำระเงินล่ะ?" },
+      { label: "เขียนข้อตกลงสัญญาใหม่", text: "ถ้าเราตั้งค่าส่วนต่างราคาเผื่อป้องกันความเสี่ยงไว้ 20% และระบุบทลงโทษทางกฎหมายที่เข้มงวดลงในสัญญาล่ะ?" },
+      { label: "ดึงงานเข้ามาดำเนินการเอง", text: "ถ้าเลิกจ้างบริษัทภายนอกในงานส่วนที่ไม่ใช่เป้าหมายหลัก แล้วนำกลับมาบริหารจัดการด้วยทีมหลักของเราเองล่ะ?" },
+      { label: "เลื่อนกำหนดเวลาส่งมอบงาน", text: "ถ้าเราปรับช่วงเวลาส่งมอบงานทางวิชาชีพที่สำคัญเพื่อหลีกเลี่ยงช่วงเวลาที่มีความขัดแย้งสูงโดยตรงล่ะ?" }
+    ]
+  }
+};
+
+const getGreetingData = (lang: string) => {
+  return GREETINGS_BY_LANG[lang] || GREETINGS_BY_LANG["en"];
+};
+
+
 export default function App() {
   const [question, setQuestion] = useState("");
   const [latitude, setLatitude] = useState<number | "">("");
@@ -148,6 +450,7 @@ export default function App() {
   const [kineticSpeed, setKineticSpeed] = useState(1.23);
   const [timestamp, setTimestamp] = useState<number | null>(null);
   const [dateTimeStr, setDateTimeStr] = useState<string>("");
+  const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -214,6 +517,15 @@ export default function App() {
     setChatSessions(updatedSessions);
     localStorage.setItem("hexamind_chats", JSON.stringify(updatedSessions));
 
+    // Scroll to scroller immediately so customer feels the feedback and knows the advisor is writing
+    setTimeout(() => {
+      const chatContainer = document.getElementById("hexa-terminal-scroller");
+      if (chatContainer) {
+        chatContainer.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+    }, 50);
+
     try {
       // Map history items into the role/content interface that the backend expects
       const prevHistoryForServer = sessionMsgs.map(m => ({
@@ -240,6 +552,7 @@ export default function App() {
             hexagram: apiResult?.payload?.charts?.original?.name || activeItem?.originalGua || "Unknown",
             relationship: apiResult?.payload?.relationship || { conclusion: activeItem?.conclusion || "体用比和", type: "Unknown" },
             confidence: confidenceScore,
+            original_query: apiResult?.input?.question || activeItem?.question || "",
             local_time: new Date(apiResult?.input?.timestamp || Date.now()).toISOString()
           }
         })
@@ -299,6 +612,20 @@ export default function App() {
   const mouseTrailRef = useRef<{ x: number; y: number; t: number }[]>([]);
   const velocitiesRef = useRef<number[]>([]);
   const [confidenceScore, setConfidenceScore] = useState<number>(98.42);
+  const [rollingConfidence, setRollingConfidence] = useState<number>(75.00);
+  const [greetingIndex] = useState(() => Math.floor(Math.random() * 4));
+
+  useEffect(() => {
+    let interval: any;
+    if (isLoading) {
+      interval = setInterval(() => {
+        setRollingConfidence(60 + Math.random() * 39.99);
+      }, 100);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isLoading]);
 
   // Localisation lookup helper
   const t = (key: string) => translationDict[language][key] || key;
@@ -984,6 +1311,7 @@ export default function App() {
           timestamp: resolvedTs,
           language,
           user_tier: userTier,
+          timezoneOffset: new Date().getTimezoneOffset(),
         }),
       });
 
@@ -1048,11 +1376,12 @@ export default function App() {
       localStorage.setItem("hexamind_last_query_time", Date.now().toString());
 
       setApiResult(updatedResult);
+      setIsLeftPanelCollapsed(true);
 
       if (updatedResult.payload) {
         const payload = updatedResult.payload;
         const newHistItem: DivinationHistoryItem = {
-          id: `キャスト-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          id: `cast-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
           date: new Date(payload.temporalSeed.rawValue).toISOString(),
           question: updatedResult.input.question,
           originalGua: payload.charts.original.name,
@@ -1065,6 +1394,8 @@ export default function App() {
           kineticValue: payload.kineticSeed.rawValue,
           timestamp: payload.temporalSeed.rawValue
         };
+
+        setActiveHistoryId(newHistItem.id);
 
         let updatedHist = [newHistItem, ...historyItems];
         if (userTier === "Free") {
@@ -1147,10 +1478,21 @@ export default function App() {
           catalystWindow: language.startsWith("zh")
             ? (localCalculatedPayload.tiGua.trigram.element === "Fire" ? "午时 (11:00-13:00)" : "卯时 (05:00-07:00)")
             : language === "ja"
-            ? (localCalculatedPayload.tiGua.trigram.element === "Fire" ? "午の刻 (11:00-13:00)" : "卯の刻 (05:00-07:00)")
+            ? (localCalculatedPayload.tiGua.trigram.element === "Fire" ? "午の刻 (11:00-13:00)" : "卯的刻 (05:00-07:00)")
             : language === "ko"
             ? (localCalculatedPayload.tiGua.trigram.element === "Fire" ? "오시 (11:00-13:00)" : "묘시 (05:00-07:00)")
-            : (localCalculatedPayload.tiGua.trigram.element === "Fire" ? "Hour of the Horse (11:00-13:00)" : "Hour of the Rabbit (05:00-07:00)")
+            : (localCalculatedPayload.tiGua.trigram.element === "Fire" ? "Hour of the Horse (11:00-13:00)" : "Hour of the Rabbit (05:00-07:00)"),
+          yaoInfo: {
+            yaoCi: language.startsWith("zh")
+              ? `本卦【${localCalculatedPayload.charts.original.name}】 动爻：第 ${localCalculatedPayload.changingLine} 爻`
+              : `Hexagram [${localCalculatedPayload.charts.original.name}] Line ${localCalculatedPayload.changingLine}`,
+            yaoExplanation: language.startsWith("zh")
+              ? `时空序列触发本卦第 ${localCalculatedPayload.changingLine} 爻。`
+              : `Spatial-temporal sequence triggered Line ${localCalculatedPayload.changingLine}.`,
+            developmentDirection: language.startsWith("zh")
+              ? `由本卦【${localCalculatedPayload.charts.original.name}】向变卦【${localCalculatedPayload.charts.transformed.name}】之第 ${localCalculatedPayload.changingLine} 爻位演进。请开启 GEMINI_API_KEY 以解锁高阶易学及周易经典爻辞深度分析。`
+              : `Evolving towards Transformed Hexagram [${localCalculatedPayload.charts.transformed.name}] at Line ${localCalculatedPayload.changingLine}. Provide a valid GEMINI_API_KEY to unlock advanced historical YaoCi detail analysis.`
+          }
         }
       };
 
@@ -1159,6 +1501,7 @@ export default function App() {
       localStorage.setItem("hexamind_last_query_time", Date.now().toString());
 
       setApiResult(localResult);
+      setIsLeftPanelCollapsed(true);
 
       const hItem: DivinationHistoryItem = {
         id: `cast-${Date.now()}`,
@@ -1174,6 +1517,8 @@ export default function App() {
         kineticValue: localCalculatedPayload.kineticSeed.rawValue,
         timestamp: localCalculatedPayload.temporalSeed.rawValue
       };
+
+      setActiveHistoryId(hItem.id);
 
       let updated = [hItem, ...historyItems];
       if (userTier === "Free") {
@@ -1193,6 +1538,7 @@ export default function App() {
   // Inspect previous item from Local History log
   const handleSelectHistory = (id: string) => {
     setActiveHistoryId(id);
+    setIsLeftPanelCollapsed(true);
     let item = historyItems.find((h) => h.id === id);
     if (!item && id.startsWith("auto-monthly")) {
       item = getAutomatedMonthlyPushes(language).find(p => p.id === id);
@@ -1285,7 +1631,18 @@ export default function App() {
           reconstructedPayload.yongGua.trigram.element
         ),
         phenomenologicalEcho: t("historyLockedEcho"),
-        catalystWindow: "Double-hours of peak elemental coordination."
+        catalystWindow: "Double-hours of peak elemental coordination.",
+        yaoInfo: {
+          yaoCi: language.startsWith("zh")
+            ? `本卦【${reconstructedPayload.charts.original.name}】 动爻：第 ${reconstructedPayload.changingLine} 爻`
+            : `Hexagram [${reconstructedPayload.charts.original.name}] Line ${reconstructedPayload.changingLine}`,
+          yaoExplanation: language.startsWith("zh")
+            ? `时空序列触发本卦第 ${reconstructedPayload.changingLine} 爻。`
+            : `Spatial-temporal sequence triggered Line ${reconstructedPayload.changingLine}.`,
+          developmentDirection: language.startsWith("zh")
+            ? `由本卦【${reconstructedPayload.charts.original.name}】向变卦【${reconstructedPayload.charts.transformed.name}】之第 ${reconstructedPayload.changingLine} 爻位演进。请开启 GEMINI_API_KEY 以解锁高阶易学及周易经典爻辞深度分析。`
+            : `Evolving towards Transformed Hexagram [${reconstructedPayload.charts.transformed.name}] at Line ${reconstructedPayload.changingLine}. Provide a valid GEMINI_API_KEY to unlock advanced historical YaoCi detail analysis.`
+        }
       }
     };
 
@@ -1306,6 +1663,7 @@ export default function App() {
     if (activeHistoryId === id) {
       setActiveHistoryId(null);
       setApiResult(null);
+      setIsLeftPanelCollapsed(false);
     }
   };
 
@@ -1324,6 +1682,7 @@ export default function App() {
 
     setActiveHistoryId(null);
     setApiResult(null);
+    setIsLeftPanelCollapsed(false);
     setIsConfirmingClear(false);
   };
 
@@ -1339,21 +1698,21 @@ export default function App() {
       case "大吉":
         return {
           bg: isDark 
-            ? "text-cyan-400 bg-cyan-950/20" 
-            : "text-cyan-800 bg-cyan-50/40",
-          text: isDark ? "text-[#06b6d4]" : "text-cyan-800",
-          iconColor: "text-[#06b6d4]",
-          badge: "bg-[#06b6d4] text-black",
+            ? "text-rose-400 bg-rose-950/20" 
+            : "text-rose-800 bg-rose-50/40",
+          text: isDark ? "text-rose-400" : "text-rose-800",
+          iconColor: "text-rose-500",
+          badge: "bg-rose-500 text-white",
           desc: t("descExtremAusp")
         };
       case "Auspicious Growth":
       case "Auspicious":
       case "吉":
         return {
-          bg: isDark ? "text-cyan-200 bg-emerald-950/20" : "text-emerald-800 bg-emerald-50/40",
-          text: isDark ? "text-cyan-400" : "text-emerald-800",
-          iconColor: isDark ? "text-cyan-400" : "text-emerald-600",
-          badge: isDark ? "bg-cyan-500 text-black" : "bg-emerald-500 text-white",
+          bg: isDark ? "text-rose-300 bg-rose-950/20" : "text-rose-800 bg-rose-50/40",
+          text: isDark ? "text-rose-400" : "text-rose-800",
+          iconColor: "text-rose-500",
+          badge: "bg-rose-500 text-white",
           desc: t("descAusp")
         };
       case "Equilibrium":
@@ -1361,28 +1720,28 @@ export default function App() {
         return {
           bg: isDark ? "bg-white/5" : "bg-white",
           text: isDark ? "text-white/90" : "text-slate-900",
-          iconColor: isDark ? "text-white/60" : "text-slate-500",
-          badge: isDark ? "bg-white text-black" : "bg-slate-800 text-white",
+          iconColor: "text-slate-400 dark:text-white/40",
+          badge: isDark ? "bg-white/10 text-white" : "bg-slate-800 text-white",
           desc: t("descEquil")
         };
       case "Leaking / Drainage":
       case "Leak":
       case "泄":
         return {
-          bg: isDark ? "text-blue-300 bg-blue-950/20" : "text-blue-800 bg-blue-50/40",
-          text: isDark ? "text-blue-400" : "text-blue-700",
-          iconColor: "text-blue-400",
-          badge: isDark ? "bg-blue-500 text-black" : "bg-blue-600 text-white",
+          bg: isDark ? "text-rose-300 bg-rose-950/15" : "text-rose-800 bg-rose-50/30",
+          text: isDark ? "text-rose-400" : "text-rose-800",
+          iconColor: "text-rose-500",
+          badge: isDark ? "bg-white/10 text-white" : "bg-slate-700 text-white",
           desc: t("descLeak")
         };
       case "Warning / Conflict":
       case "Exhausting":
       case "平":
         return {
-          bg: isDark ? "text-amber-200 bg-amber-950/15" : "text-amber-800 bg-amber-50/45",
-          text: isDark ? "text-[#f59e0b]" : "text-amber-800",
-          iconColor: "text-[#f59e0b]",
-          badge: "bg-[#f59e0b] text-black",
+          bg: isDark ? "text-rose-300 bg-rose-950/15" : "text-rose-800 bg-rose-50/35",
+          text: isDark ? "text-rose-400" : "text-rose-800",
+          iconColor: "text-rose-400",
+          badge: "bg-rose-500 text-white",
           desc: t("descWarning")
         };
       case "Systemic Risk":
@@ -1392,7 +1751,7 @@ export default function App() {
           bg: isDark ? "text-rose-300 bg-rose-950/20" : "text-rose-800 bg-rose-50/40",
           text: isDark ? "text-rose-400" : "text-rose-800",
           iconColor: "text-rose-400",
-          badge: "bg-rose-500 text-white",
+          badge: "bg-rose-550 text-white bg-rose-600",
           desc: t("descRisk")
         };
       default:
@@ -1401,13 +1760,43 @@ export default function App() {
           text: isDark ? "text-white/80" : "text-slate-800",
           iconColor: isDark ? "text-white/40" : "text-slate-400",
           badge: defaultColor,
-          desc: "Standard metaphysical diagnostic verdict."
+          desc: t("defaultVerdictDesc")
         };
     }
   };
 
   const activeVerdict = apiResult?.aiOutput?.verdict;
   const cardStyle = getVerdictCardStyles(activeVerdict);
+
+  const getVerdictTranslationKey = (ver?: string) => {
+    switch (ver) {
+      case "Critical Advantage":
+      case "Extremely Auspicious":
+      case "大吉":
+        return "ausp_ExtremAusp";
+      case "Auspicious Growth":
+      case "Auspicious":
+      case "吉":
+        return "ausp_Ausp";
+      case "Equilibrium":
+      case "体用比和":
+        return "ausp_Equil";
+      case "Leaking / Drainage":
+      case "Leak":
+      case "泄":
+        return "ausp_Leak";
+      case "Warning / Conflict":
+      case "Exhausting":
+      case "平":
+        return "ausp_Warning";
+      case "Systemic Risk":
+      case "Highly Inauspicious":
+      case "凶":
+        return "ausp_Risk";
+      default:
+        return "ausp_Equil";
+    }
+  };
 
   // Helper to calculate auspicious element cycle and zodiac days based on Ti Element
   const getPrimeCoordinatingDetails = () => {
@@ -1676,6 +2065,170 @@ export default function App() {
     };
   };
 
+  const getCorporateCounselElementTranslation = (rawElement: string, lang: string) => {
+    const isZh = lang.startsWith("zh");
+    let elementKey = rawElement;
+    if (rawElement.includes("金") || rawElement.includes("Metal") || rawElement.includes("generates Metal")) elementKey = "Metal";
+    if (rawElement.includes("木") || rawElement.includes("Wood") || rawElement.includes("generates Wood")) elementKey = "Wood";
+    if (rawElement.includes("水") || rawElement.includes("Water") || rawElement.includes("generates Water")) elementKey = "Water";
+    if (rawElement.includes("火") || rawElement.includes("Fire") || rawElement.includes("generates Fire")) elementKey = "Fire";
+    if (rawElement.includes("土") || rawElement.includes("Earth") || rawElement.includes("generates Earth")) elementKey = "Earth";
+
+    if (!isZh) {
+      switch (elementKey) {
+        case "Metal":
+          return "Injecting 'Earth' operations (e.g. consolidation of physical resources, securing stable backend assets) nourishes and defends your 'Metal' asset class.";
+        case "Wood":
+          return "Injecting 'Water' operations (e.g. maintaining strategic adaptation, introducing flexible agreements, securing reserve buffer capital) clears growth bottlenecks of your 'Wood' asset class.";
+        case "Water":
+          return "Injecting 'Metal' operations (e.g. tightening corporate compliance frameworks, allocating hard collateral, executing strategic hedging) directly protects and nourishes your liquidity ('Water' asset).";
+        case "Fire":
+          return "Injecting 'Wood' operations (e.g. extending contract credit periods, mobilizing strategic partnerships, building buffer stocks) fuels and sustains your 'Fire' asset with continuous momentum.";
+        case "Earth":
+          return "Injecting 'Fire' operations (e.g. accelerating active execution velocity, conducting high-profile concentrated launches) builds structural solidity and fast implementation of your 'Earth' asset.";
+        default:
+          return "Combining supporting elements will enrich your organizational core and shield your asset.";
+      }
+    }
+
+    switch (elementKey) {
+      case "Metal":
+        return "引入【土】属性策略（如：巩固有形实体资产、提供基建支撑、设计稳健底盘）能有效筑牢决策根基，滋养并维护您的【金】属性防线与流动性。";
+      case "Wood":
+        return "引入【水】属性策略（如：保持长线战略定力、设计灵活性缓冲条款、配置额外预算资金）能合理打破扩张瓶颈，滋养并维护您的【木】属性成长空间。";
+      case "Water":
+        return "引入【金】属性策略（如：收紧风控合规、划拨硬性资产抵押、配置套期保值）可对冲外部的不确定性耗损，安全级数极大，能长效滋养您的【水】属性流动资产。";
+      case "Fire":
+        return "引入【木】属性策略（如：拉长账期增加周转弹性、寻求战略同盟背书、注入预留周转时间）能作为完美的缓冲对冲量，为【火】属性决策提供源源不断的长驱能量。";
+      case "Earth":
+        return "引入【火】属性策略（如：提升即时执行速率、集中高频资源宣发、快速突破关键决策）能够快速激发大局势的能效比，实现您的【土】属性稳健项目快速落地。";
+      default:
+        return "合理配置相生生助因素，能长效滋养您这一方的核心资产，稳步防御外部风险。";
+    }
+  };
+
+  const getCorporateCounselCalendarExplanation = (zodiacs: string, favorableDays: string, lang: string) => {
+    const isZh = lang.startsWith("zh");
+    if (!isZh) {
+      return `Suggested calendar execution timeframe: Select days in your planner characterized by the zodiac signs [${zodiacs}] (corresponding to ${favorableDays} in the 12 earthly branch cycle) to declare actions, execute trades, or close contracts to capitalize on high-resonance advantage.`;
+    }
+    return `建议您比对您的工作月历，选择传统干支历法中对应【${zodiacs}】（即对应的地支：${favorableDays}，这在普通手机日历、万年历 App 或黄历中均直接标有生肖属性或地支名称）的日子，来作为签署重要合同、部署关键商业项目或执行重要财务交易的执行时机。这些特定日期的能量气场与您的核心能级具有极强的共鸣与相生生助关系，能天然赋予您最优越的天时进展优势。`;
+  };
+
+  const getUnifiedAssetSynergyDetails = (elementKey: string, lang: string) => {
+    const isZh = lang.startsWith("zh");
+    const isTw = lang === "zh-TW";
+    
+    if (isZh) {
+      switch (elementKey) {
+        case "Metal":
+          return {
+            synergyComponent: isTw 
+              ? "主體資本屬金，當前最佳協同能量為【土】。這意味著在執行期內，主動鞏固有形實體資產、提供基建支撑或設計穩健底盤（土屬性行為），將產生‘土生金’的良性催化鍊。"
+              : "主体资本属金，当前最佳协同能量为【土】。这意味着在执行期内，主动巩固有形实体资产、提供基建支撑或设计稳健底盘（土属性行为），将产生‘土生金’的良性催化链。",
+            resonantTimeline: isTw
+              ? "系統精算顯示，未來時間軸中【丑日（土旺）】、【辰日（土旺）】、【未日（土旺）】與【戌日（土旺）】為最強外部地利共振點。建議將核心合同簽署、資金劃撥或關鍵談判對攻，剛性排配這四个時間窗口内執行，以獲取最高的時間溢價與風險沖減。"
+              : "系统精算显示，未来时间轴中【丑日（土旺）】、【辰日（土旺）】、【未日（土旺）】与【戌日（土旺）】为最强外部地利共振点。建议将核心合同签署、资金划拨或关键谈判对攻，刚性排配在这四个时间窗口内执行，以获取最高的周期溢价与风险冲减。"
+          };
+        case "Wood":
+          return {
+            synergyComponent: isTw
+              ? "主體資本屬木，當前最佳協同能量為【水】。這意味著在執行期內，主動保持長線戰略定力、設計靈活性緩衝條款或配置額外預算資金（水屬性行為），將產生‘水生木’的良性催化鍊。"
+              : "主体资本属木，当前最佳协同能量为【水】。这意味着在执行期内，主动保持长线战略定力、设计灵活性缓冲条款或配置额外预算资金（水属性行为），将产生‘水生木’的良性催化链。",
+            resonantTimeline: isTw
+              ? "系統精算顯示，未來時間軸中【子日（水旺）】與【亥日（水旺）】為最強外部地利共振點。建議將核心合同簽署、資金劃撥或關鍵談判對攻，剛性排配在這兩個時間窗口內執行，以獲取最高的時間溢價與風險沖減。"
+              : "系统精算显示，未来时间轴中【子日（水旺）】与【亥日（水旺）】为最强外部地利共振点。建议将核心合同签署、资金拨付或关键谈判对攻，刚性排配在这两个时间窗口内执行，以获取最高的周期溢价与风险冲减。"
+          };
+        case "Water":
+          return {
+            synergyComponent: isTw
+              ? "主體資本屬水，當前最佳協同能量為【金】。這意味著在執行期內，主動收緊風控合規、劃撥硬性資產抵押或配置套期保值（金屬性行為），將產生‘金生水’的良性催化鍊。"
+              : "主体资本属水，当前最佳协同能量为【金】。这意味着在执行期内，主动收紧风控合规、划拨硬性资产抵押 or 配置套期保值（金属性行为），将产生‘金生水’的良性催化链。",
+            resonantTimeline: isTw
+              ? "系統精算顯示，未來時間軸中【申日（金旺）】與【酉日（金旺）】為最強外部地利共振點。建議將核心合同簽署、資金劃撥或關鍵談判對攻，剛性排配在這兩個時間窗口內執行，以獲取最高的時間溢价與風險沖減。"
+              : "系统精算显示，未来时间轴中【申日（金旺）】与【酉日（金旺）】为最强外部地利共振点。建议将核心合同签署、资金划拨或关键谈判对攻，刚性排配在这两个时间窗口内执行，以获取最高的周期溢价与风险冲减。"
+          };
+        case "Fire":
+          return {
+            synergyComponent: isTw
+              ? "主體資本屬火，當前最佳協同能量為【木】。這意味著在執行期內，主動增加策略耐性、讓利賬期或追加技術研發投入（木屬性行為），將產生‘木生火’的良性催化鍊。"
+              : "主体资本属火，当前最佳协同能量为【木】。这意味着在执行期内，主动增加策略耐性、让利账期或追加技术研发投入（木属性行为），将产生‘木生火’的良性催化链。",
+            resonantTimeline: isTw
+              ? "系統精算顯示，未來時間軸中【寅日（木旺）】與【卯日（木旺）】為最強外部地利共振點。建議將核心合同簽署、資金劃撥或關鍵談判對攻，剛性排配在這兩個時間窗口內執行，以獲取最高的時間溢價與風險沖減。"
+              : "系统精算显示，未来时间轴中【寅日（木旺）】与【卯日（木旺）】为最强外部地利共振点。建议将核心合同签署、资金划拨或关键谈判对攻，刚性排配在这两个时间窗口内执行，以获取最高的周期溢价与风险冲减。"
+          };
+        case "Earth":
+          return {
+            synergyComponent: isTw
+              ? "主體資本屬土，當前最佳協同能量為【火】。這意味著在執行期內，主動提升即時執行速率、集中高頻資源宣發或快速突破關鍵決策（火屬性行為），將產生‘火生土’的良性催化鍊。"
+              : "主体资本属土，当前最佳协同能量为【火】。这意味着在执行期内，主动提升即时执行速率、集中高频资源宣发或快速突破关键决策（火属性行为），将产生‘火生土’的良性催化链。",
+            resonantTimeline: isTw
+              ? "系統精算顯示，未來時間軸中【巳日（火旺）】與【午日（火旺）】為最強外部地利共振點。建議將核心合同簽署、資金劃撥或關鍵談判對攻，剛性排配在這兩個時間窗口內執行，以獲取最高的時間溢價與風險沖減。"
+              : "系统精算显示，未来时间轴中【巳日（火旺）】与【午日（火旺）】为最强外部地利共振点。建议将核心合同签署、资金划拨或关键谈判对攻，刚性排配在这两个时间窗口内执行，以获取最高的周期溢价与风险冲减。"
+          };
+        default:
+          return {
+            synergyComponent: "合理配置相生生助因素，能长效滋养您这一方的核心资产，稳步防御外部风险。",
+            resonantTimeline: "建议参考您工作月历中的生肖及地支日子进行关键排期。"
+          };
+      }
+    }
+    
+    // Fallback/Translations for non-Chinese languages
+    switch (elementKey) {
+      case "Metal":
+        return {
+          synergyComponent: lang === "ja" 
+            ? "主体資本は土が金を生むサイクルです。有形資産を固め、インフラ支持や安定的なポートフォリオを強化することが、あなたの金属性資産を守る良質な触媒となります。"
+            : "TI Asset belongs to Metal; the current optimal synergetic energy is [Earth]. Actively strengthening physical assets, core foundations, or stable reserve systems (Earth-based tactics) triggers an 'Earth generates Metal' protective feedback loop.",
+          resonantTimeline: lang === "ja"
+            ? "システムの算定によると、【丑の日】、【辰の日】、【未の日】、【戌の日】が最良の共鳴タイミングです。重要契約의締結などをこの窓口に配分することが推奨されます。"
+            : "System calculation indicates that Chou, Chen, Wei, and Xu (Earth) days represent the absolute strongest resonant timelines. Schedule critical agreement signing or capital deployments within these windows to capture premium mitigation."
+        };
+      case "Wood":
+        return {
+          synergyComponent: lang === "ja"
+            ? "主体資本は水が木を生むサイクルです。戦略的定力を保ち、弾力的なバッファ予算を配置することが、あなたの木属性資産を拡大させる良質な触媒となります。"
+            : "TI Asset belongs to Wood; the current optimal synergetic energy is [Water]. Actively maintaining strategic patience, flexible buffer agreements, or extra reserve backing (Water-based tactics) triggers a 'Water generates Wood' developmental cycle.",
+          resonantTimeline: lang === "ja"
+            ? "システムの算定によると、【子の日】および【亥の日】が最良の共鳴タイミングです。重要交渉や意思決定をこの窓口に配分することが推奨されます。"
+            : "System calculation indicates that Zi and Hai (Water) days represent the absolute strongest resonant timelines. Schedule critical trade alignments or tactical agreements within these windows to yield maximum structural premiums."
+        };
+      case "Water":
+        return {
+          synergyComponent: lang === "ja"
+            ? "主体資本は金が水を生むサイクルです。監査規約を締め、物理的担保を配備することが、あなたの水属性（流動性資本）に長期的で安全な養分を与えます。"
+            : "TI Asset belongs to Water; the current optimal synergetic energy is [Metal]. Actively tightening auditing safeguards, designating solid collateral, or executing safety hedges (Metal-based tactics) triggers a 'Metal generates Water' nurturing defense pipeline.",
+          resonantTimeline: lang === "ja"
+            ? "システムの算定によると、【申の日】および【酉の日】が最良の共鳴タイミングです。重要交渉や意思決定をこの窓口に配分することが推奨されます。"
+            : "System calculation indicates that Shen and You (Metal) days represent the absolute strongest resonant timelines. Lock key negotiations or transactional settlements into these cycles to command superior security margins."
+        };
+      case "Fire":
+        return {
+          synergyComponent: lang === "ja"
+            ? "主体資本は木が火を生むサイクルです。戦略的耐久性を高め、取引条件を調整し、追加开发投資を注入することが、あなたの火属性資本を持続的に燃え立たせる良質な触媒となります。"
+            : "TI Asset belongs to Fire; the current optimal synergetic energy is [Wood]. Actively increasing strategic patience, easing payment credit terms, or appending core technical research (Wood-based tactics) creates a robust 'Wood generates Fire' continuous momentum multiplier.",
+          resonantTimeline: lang === "ja"
+            ? "システムの算定によると、【寅の日】および【卯の日】が最良の共鳴タイミングです。重要計画の実行をこの窓口に配分することが推奨されます。"
+            : "System calculation indicates that Yin and Mao (Wood) days represent the absolute strongest resonant timelines. Align key contract signings or trade declarations into these windows to harvest maximum cyclical premiums."
+        };
+      case "Earth":
+        return {
+          synergyComponent: lang === "ja"
+            ? "主体資本は火が土を生むサイクルです。即座の実行率を高め、集中プロモーションを実施することが、あなたの土属性資本を急速に強固にする良質な触媒となります。"
+            : "TI Asset belongs to Earth; the current optimal synergetic energy is [Fire]. Actively increasing project implementation velocity, amplifying marketing declarations, or seizing breakthrough decisions (Fire-based tactics) fosters a 'Fire generates Earth' quick-win realization path.",
+          resonantTimeline: lang === "ja"
+            ? "システムの算定によると、【巳の日】および【午の日】が最良の共鳴タイミングです。主要キャンペーンの実行をこの窓口に配分することが推奨されます。"
+            : "System calculation indicates that Si and Wu (Fire) days represent the absolute strongest resonant timelines. Infuse major product pushes or decisive contract settlements into these dates to scale up growth velocity effortlessly."
+        };
+      default:
+        return {
+          synergyComponent: "Balanced element configuration sustains asset growth and defends core parameters from external stress vectors.",
+          resonantTimeline: "Check your regional calendars for matching astrological branch parameters to execute key operations."
+        };
+    }
+  };
+
   const getChartTitle = (type: "original" | "nuclear" | "transformed", lang: string) => {
     const map: Record<string, Record<string, string>> = {
       "en": { original: "Original Chart", nuclear: "Nuclear Chart", transformed: "Transformed Chart" },
@@ -1751,9 +2304,9 @@ export default function App() {
             isDark ? "bg-black/20 border-white/5 text-white/90" : "bg-slate-100/50 border-slate-200/60 text-slate-700"
           }`}>
             <h5 className={`font-mono text-[10.5px] font-bold uppercase mb-2 flex items-center gap-1.5 ${
-              isDark ? "text-cyan-400" : "text-cyan-700"
+              isDark ? "text-rose-400" : "text-rose-700"
             }`}>
-              <span className="h-1.5 w-1.5 rounded-full bg-cyan-500 animate-[pulse_1.5s_infinite]" />
+              <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
               {sec.title}
             </h5>
             <div className="space-y-2 leading-relaxed">
@@ -1794,7 +2347,7 @@ export default function App() {
 
   return (
     <div 
-      className={`min-h-screen font-sans flex flex-col selection:bg-[#f59e0b] selection:text-black relative overflow-hidden transition-colors duration-300 ${bodyBgClass} ${fontSettings.className}`}
+      className={`min-h-screen lg:h-screen lg:max-h-screen lg:overflow-hidden font-sans antialiased flex flex-col selection:bg-[#f59e0b] selection:text-black relative overflow-hidden transition-colors duration-300 ${bodyBgClass} ${fontSettings.className}`}
       style={{
         "--font-sans-computed": fontSettings.fontSans,
         "--font-songti-computed": fontSettings.fontSongti,
@@ -1822,28 +2375,90 @@ export default function App() {
       />
 
       {/* Main Grid View */}
-      <main className={`flex-1 w-full max-w-none p-0 flex flex-col lg:flex-row gap-0 items-stretch relative z-10 border-t ${
+      <main className={`flex-1 w-full max-w-none p-0 flex flex-col lg:flex-row gap-0 items-stretch relative z-10 border-t lg:min-h-0 lg:overflow-hidden ${
         isDark ? "border-white/10" : "border-slate-200"
       }`}>
         
         {/* Core Workspace Area: Casting panel + Result panels */}
-        <div className={`flex-1 w-full flex flex-col lg:flex-row gap-0 items-stretch divide-y lg:divide-y-0 lg:divide-x ${
+        <div className={`flex-1 w-full flex flex-col lg:flex-row lg:h-full lg:overflow-hidden gap-0 items-stretch divide-y lg:divide-y-0 lg:divide-x ${
           isDark ? "divide-white/10 bg-white/[0.01]" : "divide-slate-200 bg-slate-50/20"
         }`}>
           
           {/* Left Side: parameters & shortcuts */}
-          <div className="w-full lg:w-[380px] lg:shrink-0 flex flex-col">
-          
-          {/* Casting Form Frame */}
-          <div className={cardBgStyle}>
-            <div className="flex items-center gap-2 mb-5">
-              <Sparkles className="w-4 h-4 text-[#f59e0b] animate-pulse" />
-              <div>
-                <h2 className={`text-[14px] font-mono font-bold uppercase tracking-wider ${textTitleClass}`}>
+          <div className={`w-full ${
+            isLeftPanelCollapsed 
+              ? "h-[48px] lg:h-full lg:w-[48px] overflow-hidden" 
+              : "h-auto lg:h-full lg:w-[380px]"
+          } lg:shrink-0 flex flex-col lg:overflow-y-auto custom-scrollbar transition-all duration-300 relative border-r ${
+            isDark ? "border-white/10" : "border-slate-200"
+          }`}>
+            {isLeftPanelCollapsed ? (
+              <div className="relative w-full h-[48px] lg:h-full flex lg:flex-col items-center justify-start py-0 lg:py-[7px] px-[7px]">
+                <button
+                  type="button"
+                  onClick={() => setIsLeftPanelCollapsed(false)}
+                  className={`absolute top-[7px] left-[7px] z-40 w-[34px] h-[34px] rounded-sm border transition-all duration-150 flex items-center justify-center cursor-pointer ${
+                    isDark ? "bg-white/5 border-white/10 text-[#f59e0b] hover:bg-white/10" : "bg-slate-50 border-slate-200 text-[#f59e0b] hover:bg-slate-100"
+                  }`}
+                  title="Expand Panel"
+                >
+                  <Maximize2 className="w-4 h-4" />
+                </button>
+                <div className="hidden lg:block lg:mt-[56px] writing-mode-vertical text-[10px] font-mono font-bold uppercase tracking-[0.2em] opacity-40 select-none whitespace-nowrap text-center" style={{ writingMode: "vertical-rl" }}>
                   {t("inceptionTitle")}
-                </h2>
+                </div>
+                <div className="lg:hidden flex items-center gap-1.5 text-[11px] font-sans font-medium tracking-wide text-slate-400 select-none truncate pl-[50px] pr-4 h-[48px] w-full">
+                  <Compass className="w-3.5 h-3.5 text-[#f59e0b] animate-spin-slow" />
+                  <span className="truncate">{t("inceptionTitle")}</span>
+                  <span className="text-[10px] opacity-60 font-normal">({language.startsWith("zh") ? "已折叠 / 点击展开参数" : "Tap to view parameters"})</span>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className={`${cardBgStyle} pt-[48.5px] lg:pt-5`}>
+                {/* 1. Mobile-only top bar (Absolute overlay at same corner coordinates) */}
+                <div className="lg:hidden absolute top-[7px] left-[7px] right-[7px] h-[34px] flex items-center z-40">
+                  <button
+                    type="button"
+                    onClick={() => setIsLeftPanelCollapsed(true)}
+                    className={`w-[34px] h-[34px] rounded-sm border transition-all duration-150 flex items-center justify-center cursor-pointer ${
+                      isDark 
+                        ? "bg-white/5 border-white/10 text-white/50 hover:text-white" 
+                        : "bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-800"
+                    }`}
+                    title="Collapse Panel"
+                  >
+                    <Minimize2 className="w-4 h-4" />
+                  </button>
+
+                  <div className="flex items-center gap-1.5 pl-[11px] select-none text-left pointer-events-none">
+                    <Sparkles className="w-3.5 h-3.5 text-[#f59e0b2a]" />
+                    <h2 className={`text-[12.5px] font-sans font-bold uppercase tracking-wider ${textTitleClass}`}>
+                      {t("inceptionTitle")}
+                    </h2>
+                  </div>
+                </div>
+
+                {/* 2. PC/Desktop-only elegant header (Standard flow row, left-aligned title, right-aligned clean toggle) */}
+                <div className="hidden lg:flex items-center justify-between mb-5 select-none">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[#f59e0b]" />
+                    <div>
+                      <h2 className={`text-[14px] font-sans font-bold uppercase tracking-wider ${textTitleClass}`}>
+                        {t("inceptionTitle")}
+                      </h2>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsLeftPanelCollapsed(true)}
+                    className={`p-1.5 rounded-sm border transition-colors duration-150 text-xs font-mono flex items-center justify-center cursor-pointer ${
+                      isDark ? "hover:bg-white/10 border-white/10 text-white/50 hover:text-white" : "hover:bg-slate-100 border-slate-200 text-slate-500 hover:text-slate-800"
+                    }`}
+                    title="Collapse Panel"
+                  >
+                    <Minimize2 className="w-4 h-4" />
+                  </button>
+                </div>
 
             {/* casting form */}
             <form onSubmit={triggerDivinate} className="space-y-4">
@@ -1856,14 +2471,14 @@ export default function App() {
               }`}>
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2 text-[12px] font-mono font-bold text-red-500 uppercase tracking-wider">
-                    <HelpCircle className="w-4 h-4 text-red-500 animate-[pulse_2s_infinite] shrink-0" />
+                    <HelpCircle className="w-4 h-4 text-red-500 shrink-0" />
                     <span>{t("currentDecision")}</span>
                   </span>
                   <button
                     type="button"
                     onClick={cyclePresetQuestion}
                     title="切换决策预设"
-                    className="p-1.5 rounded-sm hover:bg-slate-100 dark:hover:bg-white/10 transition-all cursor-pointer flex items-center justify-center active:scale-95 group"
+                    className="p-1.5 rounded-sm hover:bg-slate-100 dark:hover:bg-white/10 transition-all cursor-pointer flex items-center justify-center group"
                   >
                     <svg className="w-4 h-4 text-slate-400 dark:text-white/30 group-hover:text-slate-600 dark:group-hover:text-white/60 group-hover:rotate-45 transition-all duration-300" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2Z" />
@@ -1880,7 +2495,8 @@ export default function App() {
                       if (errorMessage) setErrorMessage(null);
                     }}
                     placeholder={t("inquiryPlaceholder")}
-                    className={`w-full rounded-sm p-3 text-[10px] font-normal focus:ring-1 focus:ring-slate-400 dark:focus:ring-white/20 font-sans transition-all resize-none h-20 overflow-hidden ${
+                    rows={2}
+                    className={`w-full rounded-sm p-3 text-[10px] font-normal focus:ring-1 focus:ring-slate-400 dark:focus:ring-white/20 font-sans transition-all resize-none h-14 overflow-hidden ${
                       isDark 
                         ? "bg-black/55 border-white/10 text-white placeholder-white/20 focus:border-white/30" 
                         : "bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:border-slate-400"
@@ -1897,7 +2513,7 @@ export default function App() {
               }`}>
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2 text-[12px] font-mono font-bold text-orange-500 uppercase tracking-wider">
-                    <Clock className="w-4 h-4 text-orange-500 animate-[pulse_2.2s_infinite] shrink-0" />
+                    <Clock className="w-4 h-4 text-orange-500 shrink-0" />
                     <span>{t("timeTemporal")}</span>
                   </span>
                   <button
@@ -1909,7 +2525,7 @@ export default function App() {
                       setDateTimeStr(localISOTime);
                       setTimestamp(now.getTime());
                     }}
-                    className="text-[9px] font-mono font-normal text-orange-500 hover:text-orange-400 border border-orange-500/30 hover:border-orange-500/50 px-1.5 py-0.5 rounded-sm transition-all bg-orange-500/5 active:scale-95 cursor-pointer select-none"
+                    className="text-[9px] font-mono font-normal text-orange-500 hover:text-orange-400 border border-orange-500/30 hover:border-orange-500/50 px-1.5 py-0.5 rounded-sm transition-all bg-orange-500/5 cursor-pointer select-none"
                   >
                     {t("injectTimeBtn")}
                   </button>
@@ -1920,8 +2536,8 @@ export default function App() {
                     {/* Visual presentation layer with matching style & gray colors */}
                     <div className={`w-full rounded-sm py-1.5 px-2 text-[12px] font-normal font-mono border flex items-center justify-between pointer-events-none ${
                       isDark 
-                        ? "bg-black/55 border-white/10 text-white/40" 
-                        : "bg-white border-slate-200 text-slate-400"
+                        ? `bg-black/55 border-white/10 ${dateTimeStr ? "text-white/70" : "text-white/40"}` 
+                        : `bg-white border-slate-200 ${dateTimeStr ? "text-slate-600" : "text-slate-400"}`
                     }`}>
                       <span className="truncate">
                         {formatDateTimeForDisplay(dateTimeStr, language)}
@@ -1938,23 +2554,19 @@ export default function App() {
                       style={{ colorScheme: isDark ? "dark" : "light" }}
                     />
                   </div>
-                  <div className="text-[13px] font-mono font-normal text-slate-400 dark:text-white/40 mt-1.5">
-                    {timestamp ? (
+                  {timestamp ? (
+                    <div className="text-[13px] font-mono font-normal text-slate-400 dark:text-white/40 mt-1.5 h-5 flex items-center">
                       <div>{(language === "zh-CN" || language === "language" || language === "zh-TW") ? "" : `${t("lunarTimeLabel")}: `}{getGanzhiTime(timestamp)}</div>
-                    ) : (
-                      <div className="text-slate-400 dark:text-white/40 animate-pulse text-[13px]">
-                        <span className="font-bold mr-1">!</span> {t("emptyTimeWarning")}
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  ) : null}
                 </div>
               </div>
 
-              {/* SECTION 3: 空间定位 (Blue-Green / Cyan) */}
+              {/* SECTION 3: 空间定位 (Blue) */}
               <div className={`space-y-3.5 p-3.5 rounded-sm border relative ${
                 isDark 
-                  ? "border-cyan-500/30 bg-cyan-500/[0.02]" 
-                  : "border-cyan-500/20 bg-cyan-500/[0.01]"
+                  ? "border-blue-500/30 bg-blue-500/[0.02]" 
+                  : "border-blue-500/20 bg-blue-500/[0.01]"
               }`}>
                 {/* Free Tier Lock Screen - Full-cover rectangular blurred overlay, dashed border, gray font, no buttons */}
                 {userTier === "Free" && (
@@ -1966,21 +2578,21 @@ export default function App() {
                         : "bg-white/85 border-neutral-300/85 text-neutral-500"
                     }`}
                   >
-                    <Lock className={`w-5 h-5 mb-2 ${isDark ? "text-neutral-500" : "text-neutral-400"} animate-[pulse_2s_infinite]`} />
+                    <Lock className={`w-5 h-5 mb-2 ${isDark ? "text-neutral-500" : "text-neutral-400"}`} />
                     <p className="text-[10px] font-mono uppercase font-bold tracking-wider">{t("geolocationLocked")}</p>
                     <p className={`text-[9px] mt-1.5 max-w-[210px] leading-relaxed ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>{t("geolocationLockedDesc")}</p>
                   </div>
                 )}
 
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-[12px] font-mono font-bold text-cyan-500 uppercase tracking-wider">
-                    <MapPin className="w-4 h-4 text-cyan-500 animate-[pulse_1.8s_infinite] shrink-0" />
+                  <span className="flex items-center gap-2 text-[12px] font-mono font-bold text-blue-500 uppercase tracking-wider">
+                    <MapPin className="w-4 h-4 text-blue-500 shrink-0" />
                     <span>{t("spatialCoordinates")}</span>
                   </span>
                   <button
                     type="button"
                     onClick={triggerGPSLocate}
-                    className="text-[9px] font-mono font-normal text-cyan-500 hover:text-cyan-400 border border-cyan-500/30 hover:border-cyan-500/50 px-1.5 py-0.5 rounded-sm transition-all bg-cyan-500/5 active:scale-95 cursor-pointer select-none"
+                    className="text-[9px] font-mono font-normal text-blue-500 hover:text-blue-400 border border-blue-500/30 hover:border-blue-500/50 px-1.5 py-0.5 rounded-sm transition-all bg-blue-500/5 cursor-pointer select-none"
                   >
                     {t("getGpsBtn")}
                   </button>
@@ -1992,31 +2604,29 @@ export default function App() {
                     <label className="text-[10px] sm:text-[11px] font-mono font-normal uppercase text-slate-400 dark:text-white/40 leading-none">
                       {t("latitude")}
                     </label>
-                    <input
-                      type="number"
-                      step="0.0001"
-                      placeholder="--"
-                      value={latitude}
-                      readOnly
-                      className={`w-full rounded-sm py-1 px-2 text-[12px] font-normal font-mono focus:outline-none ${
-                        isDark ? "bg-black/40 border-white/5 text-white/70" : "bg-slate-50 border-slate-100 text-slate-600"
+                    <div
+                      className={`w-full rounded-sm py-1.5 px-2 text-[12px] font-normal font-mono border ${
+                        isDark 
+                          ? `bg-black/55 border-white/10 ${latitude ? "text-white/70" : "text-white/40"}` 
+                          : `bg-white border-slate-200 ${latitude ? "text-slate-600" : "text-slate-400"}`
                       }`}
-                    />
+                    >
+                      {latitude !== "" ? latitude : "--"}
+                    </div>
                   </div>
                   <div className="flex flex-col gap-1">
                     <label className="text-[10px] sm:text-[11px] font-mono font-normal uppercase text-slate-400 dark:text-white/40 leading-none">
                       {t("longitude")}
                     </label>
-                    <input
-                      type="number"
-                      step="0.0001"
-                      placeholder="--"
-                      value={longitude}
-                      readOnly
-                      className={`w-full rounded-sm py-1 px-2 text-[12px] font-normal font-mono focus:outline-none ${
-                        isDark ? "bg-black/40 border-white/5 text-white/70" : "bg-slate-50 border-slate-100 text-slate-600"
+                    <div
+                      className={`w-full rounded-sm py-1.5 px-2 text-[12px] font-normal font-mono border ${
+                        isDark 
+                          ? `bg-black/55 border-white/10 ${longitude ? "text-white/70" : "text-white/40"}` 
+                          : `bg-white border-slate-200 ${longitude ? "text-slate-600" : "text-slate-400"}`
                       }`}
-                    />
+                    >
+                      {longitude !== "" ? longitude : "--"}
+                    </div>
                   </div>
                 </div>
 
@@ -2039,7 +2649,7 @@ export default function App() {
                         : "bg-white/85 border-neutral-300/85 text-neutral-500"
                     }`}
                   >
-                    <Lock className={`w-5 h-5 mb-2 ${isDark ? "text-neutral-500" : "text-neutral-400"} animate-[pulse_2s_infinite]`} />
+                    <Lock className={`w-5 h-5 mb-2 ${isDark ? "text-neutral-500" : "text-neutral-400"}`} />
                     <p className="text-[10px] font-mono uppercase font-bold tracking-wider">{t("kineticLocked")}</p>
                     <p className={`text-[9px] mt-1.5 max-w-[210px] leading-relaxed ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>{t("kineticLockedDesc")}</p>
                   </div>
@@ -2047,14 +2657,14 @@ export default function App() {
 
                 <div className="flex items-start justify-between gap-1.5 min-h-[22px]">
                   <span className="flex items-start gap-2 text-[12px] font-mono font-bold text-purple-400 uppercase tracking-wider max-w-[62%] leading-normal">
-                    <Activity className="w-4 h-4 text-purple-500 animate-[pulse_1.5s_infinite] shrink-0 mt-0.5" />
+                    <Activity className="w-4 h-4 text-purple-500 shrink-0 mt-0.5" />
                     <span className="break-words">{t("mindKineticVector")}</span>
                   </span>
                   <button
                     type="button"
                     onClick={resetScratchBoard}
                     disabled={!isScratchLocked || isLoading}
-                    className={`text-[9px] font-mono font-normal text-purple-300 hover:text-purple-200 border border-purple-500/30 hover:border-purple-500/50 px-1.5 py-0.5 rounded-sm transition-all bg-purple-500/5 active:scale-95 cursor-pointer select-none shrink-0 max-w-[36%] text-center truncate ${
+                    className={`text-[9px] font-mono font-normal text-purple-400 hover:text-purple-300 border border-purple-500/30 hover:border-purple-500/50 px-1.5 py-0.5 rounded-sm transition-all bg-purple-500/5 cursor-pointer select-none shrink-0 max-w-[36%] text-center truncate ${
                       isScratchLocked && !isLoading ? "opacity-100" : "opacity-0 pointer-events-none"
                     }`}
                   >
@@ -2073,11 +2683,13 @@ export default function App() {
                     }`}
                   >
                     {/* Background Reveal Layer (What gets revealed when mist is rubbed off!) */}
-                    <div className="absolute inset-0 bg-gradient-to-tr from-purple-950/20 via-blue-950/30 to-slate-950 flex flex-col items-center justify-center pointer-events-none select-none">
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.18)_0%,transparent_75%)] animate-[pulse_3s_infinite]" />
-                      <p className="text-[12px] font-mono font-normal text-purple-200 tracking-widest uppercase animate-pulse">
-                        {t("cosmicAlignmentFormed")}
-                      </p>
+                    <div className="absolute inset-0 bg-gradient-to-tr from-purple-950/20 via-slate-950 flex flex-col items-center justify-center pointer-events-none select-none">
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.15)_0%,transparent_75%)]" />
+                      {!isScratchLocked && (
+                        <p className="text-[12px] font-mono font-normal text-purple-200 tracking-widest uppercase">
+                          {t("cosmicAlignmentFormed")}
+                        </p>
+                      )}
                     </div>
 
                     {/* Canvas Overlay for Erasing */}
@@ -2094,9 +2706,7 @@ export default function App() {
 
                     {/* Locked Screen Overlay (Defending "卦多不灵" Ritual) */}
                     {isScratchLocked && (
-                      <div className={`absolute inset-0 z-20 flex flex-col items-center justify-center backdrop-blur-[1px] pointer-events-all px-4 animate-fade-in text-center ${
-                        isDark ? "bg-black/85" : "bg-white/95"
-                      }`}>
+                      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center backdrop-blur-[1px] pointer-events-all px-4 animate-fade-in text-center bg-black/45">
                         <div className="flex flex-col justify-center items-center">
                           <div className="text-[11px] font-mono font-normal text-slate-400 dark:text-white/40">
                             {language.startsWith("zh") ? "" : "Measured Velocity: "}{kineticSpeed.toFixed(3)} m/s²
@@ -2111,7 +2721,7 @@ export default function App() {
                     )}
 
                     {/* slider vector metrics progress */}
-                    <div className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-purple-500 via-blue-500 to-[#06b6d4] transition-all z-10 pointer-events-none" style={{ width: `${scratchProgress}%` }} />
+                    <div className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-purple-500 via-purple-600 to-purple-400 transition-all z-10 pointer-events-none" style={{ width: `${scratchProgress}%` }} />
                   </div>
                 </div>
               </div>
@@ -2131,14 +2741,14 @@ export default function App() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                   className={`relative w-full py-2.5 px-4 rounded-sm font-mono font-bold tracking-widest text-[9.5px] uppercase flex items-center justify-center gap-2 transition-all cursor-pointer border ${
+                  className={`relative w-full py-2.5 px-4 rounded-sm font-mono font-bold tracking-widest text-[9.5px] uppercase flex items-center justify-center gap-2 transition-all cursor-pointer border ${
                     isDark 
                       ? "bg-white text-black border-transparent hover:bg-white/95 text-black" 
                       : "bg-slate-900 text-white border-transparent hover:bg-slate-800 text-white"
                   } ${
                     isLoading
-                      ? "opacity-40 cursor-not-allowed"
-                      : "hover:scale-[1.01] active:scale-[0.99]"
+                      ? "opacity-45 cursor-not-allowed"
+                      : ""
                   }`}
                 >
                   {isLoading ? (
@@ -2156,24 +2766,24 @@ export default function App() {
               </div>
             </form>
           </div>
-
+            )}
         </div>
 
         {apiResult ? (
           <>
             {/* Column 2: Module 1 & Module 2 Charts */}
-            <div className={`flex-1 flex flex-col divide-y ${isDark ? "divide-white/10" : "divide-slate-200"} animate-fade-in`}>
+            <div className={`flex-1 flex flex-col lg:h-full lg:overflow-y-auto custom-scrollbar divide-y ${isDark ? "divide-white/10" : "divide-slate-200"} animate-fade-in`}>
               
               {/* Module 1: Seed & Gua Charts Visualizer screen */}
               <div className={cardBgStyle}>
                 <div className="flex items-center justify-between pb-2 mb-4">
                   <div className="flex items-center gap-2">
-                    <Activity className="w-4 h-4 text-[#06b6d4]" />
+                    <Activity className="w-4 h-4 text-rose-500" />
                     <div>
-                      <h2 className={`text-xs font-mono font-bold uppercase tracking-wider ${textTitleClass}`}>
+                      <h2 className={`text-xs font-sans font-bold uppercase tracking-wider ${textTitleClass}`}>
                         {t("mod1Title")}
                       </h2>
-                      <p className={`text-[10px] font-mono ${textSubClass}`}>
+                      <p className={`text-[10px] font-sans ${textSubClass}`}>
                         {t("mod1Sub")}
                       </p>
                     </div>
@@ -2186,17 +2796,17 @@ export default function App() {
                 }`}>
                   <div>
                     <span className="block opacity-75 uppercase font-normal">{t("tSeedHex")}</span>
-                    <span className="text-[#f59e0b] font-normal text-[9px]">{apiResult.payload.temporalSeed.hex}</span>
+                    <span className="text-orange-500 font-bold text-[9px]">{apiResult.payload.temporalSeed.hex}</span>
                   </div>
                   <div>
                     <span className="block opacity-75 uppercase font-normal">{t("sSeedLatLng")}</span>
-                    <span className={`font-normal text-[9px] ${isDark ? "text-white/80" : "text-slate-800"}`}>
+                    <span className="text-blue-500 font-bold text-[9px]">
                       {apiResult.payload.spatialSeed.formatted}
                     </span>
                   </div>
                   <div>
                     <span className="block opacity-75 uppercase font-normal">{t("kSeedAcc")}</span>
-                    <span className="text-[#06b6d4] font-normal text-[9px]">{apiResult.payload.kineticSeed.rawValue.toFixed(3)} m/s²</span>
+                    <span className="text-purple-500 font-bold text-[9px]">{apiResult.payload.kineticSeed.rawValue.toFixed(3)} m/s²</span>
                   </div>
                 </div>
 
@@ -2249,12 +2859,12 @@ export default function App() {
               {/* Module 2: The WuXing Metaphysical Interaction matrix */}
               <div className={cardBgStyle}>
                 <div className="flex items-center gap-2 pb-2 mb-4">
-                  <Compass className="w-4 h-4 text-[#f59e0b]" />
+                  <Compass className="w-4 h-4 text-rose-500" />
                   <div>
-                    <h2 className={`text-xs font-mono font-bold uppercase tracking-wider ${textTitleClass}`}>
+                    <h2 className={`text-xs font-sans font-bold uppercase tracking-wider ${textTitleClass}`}>
                       {t("mod2Title")}
                     </h2>
-                    <p className={`text-[10px] font-mono ${textSubClass}`}>
+                    <p className={`text-[10px] font-sans ${textSubClass}`}>
                       {t("mod2Sub")}
                     </p>
                   </div>
@@ -2268,18 +2878,26 @@ export default function App() {
                     <div className={`p-4 rounded-sm border text-center relative overflow-hidden group ${
                       isDark ? "bg-black/30 border-white/10" : "bg-slate-50 border-slate-200"
                     }`}>
-                      <span className={`absolute left-2 top-2 px-1.5 py-0.5 rounded-sm text-[8px] font-mono font-bold uppercase tracking-wider ${
-                        isDark ? "bg-white/10 text-white/60" : "bg-slate-200 text-slate-600"
+                      <span className={`absolute left-2 top-2 px-1.5 py-0.5 rounded-sm ${
+                        language.startsWith("zh")
+                          ? "font-classic-serif font-extrabold text-[14px]"
+                          : "text-[8px] font-mono font-bold uppercase tracking-wider"
+                      } ${
+                        isDark ? "bg-white/10 text-white" : "bg-slate-200/80 text-slate-800"
                       }`}>
                         {t("tiGua")}
                       </span>
                       <span className={`block text-[9px] uppercase font-mono mt-3 ${isDark ? "text-white/40" : "text-slate-400"}`}>
                         {t("tiSub")}
                       </span>
-                      <div className={`text-3xl font-serif my-2 font-medium ${isDark ? "text-white" : "text-slate-900"}`}>
+                      <div className={`text-3xl my-2 ${isDark ? "text-white" : "text-slate-900"} ${
+                        language.startsWith("zh") ? "font-classic-serif font-extrabold text-[32px]" : "font-sans font-medium"
+                      }`}>
                         {apiResult.payload.tiGua.trigram.name}
                       </div>
-                      <span className="text-[10px] font-mono px-2 py-0.5 bg-[#06b6d4]/10 text-[#06b6d4] rounded-sm border border-[#06b6d4]/20 font-bold uppercase">
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded-sm border font-bold uppercase ${
+                        isDark ? "bg-white/5 border-white/10 text-white/90" : "bg-slate-150 border-slate-300 text-slate-700"
+                      }`}>
                         {getElementDisplay(apiResult.payload.tiGua.trigram.element, language)}
                       </span>
                       <div className={`text-[9px] mt-2.5 font-mono ${isDark ? "text-white/30" : "text-slate-400"}`}>
@@ -2291,18 +2909,26 @@ export default function App() {
                     <div className={`p-4 rounded-sm border text-center relative overflow-hidden group ${
                       isDark ? "bg-black/30 border-white/10" : "bg-slate-50 border-slate-200"
                     }`}>
-                      <span className={`absolute left-2 top-2 px-1.5 py-0.5 rounded-sm text-[8px] font-mono font-bold uppercase tracking-wider ${
-                        isDark ? "bg-white/10 text-white/60" : "bg-slate-200 text-slate-600"
+                      <span className={`absolute left-2 top-2 px-1.5 py-0.5 rounded-sm ${
+                        language.startsWith("zh")
+                          ? "font-classic-serif font-extrabold text-[14px]"
+                          : "text-[8px] font-mono font-bold uppercase tracking-wider"
+                      } ${
+                        isDark ? "bg-white/10 text-white" : "bg-slate-200/80 text-slate-800"
                       }`}>
                         {t("yongGua")}
                       </span>
                       <span className={`block text-[9px] uppercase font-mono mt-3 ${isDark ? "text-white/40" : "text-slate-400"}`}>
                         {t("yongSub")}
                       </span>
-                      <div className={`text-3xl font-serif my-2 font-medium ${isDark ? "text-white" : "text-slate-900"}`}>
+                      <div className={`text-3xl my-2 ${isDark ? "text-white" : "text-slate-900"} ${
+                        language.startsWith("zh") ? "font-classic-serif font-extrabold text-[32px]" : "font-sans font-medium"
+                      }`}>
                         {apiResult.payload.yongGua.trigram.name}
                       </div>
-                      <span className="text-[10px] font-mono px-2 py-0.5 bg-[#f59e0b]/10 text-[#f59e0b] rounded-sm border border-[#f59e0b]/20 font-bold uppercase">
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded-sm border font-bold uppercase ${
+                        isDark ? "bg-white/5 border-white/10 text-white/90" : "bg-slate-150 border-slate-300 text-slate-700"
+                      }`}>
                         {getElementDisplay(apiResult.payload.yongGua.trigram.element, language)}
                       </span>
                       <div className={`text-[9px] mt-2.5 font-mono ${isDark ? "text-white/30" : "text-slate-400"}`}>
@@ -2316,12 +2942,12 @@ export default function App() {
                     isDark ? "bg-black/45 border-white/10" : "bg-slate-50 border-slate-200"
                   }`}>
                     <div>
-                      <span className={`text-[8px] uppercase tracking-wider font-mono block mb-1 font-bold ${
+                      <span className={`text-[8px] uppercase tracking-wider font-sans block mb-1 font-bold ${
                         isDark ? "text-white/40" : "text-slate-400"
                       }`}>
                         {t("formulaMatrix")}
                       </span>
-                      <h4 className="text-base font-serif font-semibold text-[#06b6d4] flex items-center gap-2">
+                      <h4 className="text-base font-semibold text-rose-500 flex items-center gap-2">
                         {apiResult.payload.relationship.conclusion}
                         {!(language === "zh-CN" || language === "zh-TW") && (
                           <span className={`text-xs font-mono font-normal ${isDark ? "text-white/40" : "text-slate-400"}`}>
@@ -2331,7 +2957,7 @@ export default function App() {
                       </h4>
                     </div>
 
-                    <p className={`text-xs leading-relaxed mt-4 italic p-3 rounded-sm border font-serif ${
+                    <p className={`text-xs leading-relaxed mt-4 italic p-3 rounded-sm border ${
                       isDark ? "bg-white/5 border-white/5 text-white/90" : "bg-white border-slate-100 text-slate-700"
                     }`}>
                       "{getWuXingRelationshipInterpretation(
@@ -2342,14 +2968,93 @@ export default function App() {
                       )}"
                     </p>
 
-                    <div className={`mt-4 flex flex-wrap items-center gap-2 border-t pt-3 text-[9px] font-mono uppercase font-bold ${
+                    <div className={`mt-4 flex flex-wrap items-center gap-2 border-t pt-3 text-[9px] font-sans uppercase font-bold ${
                       isDark ? "text-white/40 border-white/5" : "text-slate-400 border-slate-200"
                     }`}>
                       <span>{t("dynamicTrigger")}</span>
-                      <span className="text-[#f59e0b] bg-[#f59e0b]/10 px-2 py-0.5 border border-[#f59e0b]/20 rounded-sm">
+                      <span className="text-rose-500 bg-rose-500/10 px-2 py-0.5 border border-rose-500/20 rounded-sm font-sans font-bold">
                         {t("changingLineTrigger").replace("{line}", apiResult.payload.changingLine.toString())}
                       </span>
                     </div>
+
+                    {/* Beginner-friendly explanation of the activated Yao position */}
+                    {(() => {
+                      const hasClassicalYao = apiResult.aiOutput && apiResult.aiOutput.yaoInfo;
+                      const yaoDetails = getDetailedYaoExplanation(apiResult.payload.changingLine, language);
+                      
+                      if (hasClassicalYao) {
+                        const yaoInfo = apiResult.aiOutput.yaoInfo!;
+                        return (
+                          <div className={`mt-4 pt-4 border-t ${
+                            isDark ? "border-white/5 text-slate-300" : "border-slate-100 text-slate-700"
+                          } text-xs leading-relaxed font-sans space-y-4`}>
+                            
+                            {/* Layer name and Yao statement concatenated */}
+                            <div>
+                              <div className={`font-bold text-xs font-sans ${isDark ? "text-slate-200" : "text-slate-800"}`}>
+                                {language.startsWith("zh") 
+                                  ? `触发${yaoDetails.levelName.replace("爻", "层")}（${yaoDetails.levelConcept}）`
+                                  : `Activated ${yaoDetails.levelName.replace("爻", "层").replace("Line ", "Layer ")} (${yaoDetails.levelConcept})`}
+                              </div>
+                              <div className={`text-xs font-sans mt-1.5 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                                <span className={`font-semibold mr-1.5 ${isDark ? "text-slate-200" : "text-slate-900"}`}>{yaoInfo.yaoCi}</span>
+                                {yaoInfo.yaoExplanation}
+                              </div>
+                            </div>
+
+                            {/* Corresponding executive guidance */}
+                            <div>
+                              <div className={`font-bold text-xs font-sans ${isDark ? "text-slate-200" : "text-slate-800"}`}>
+                                {language.startsWith("zh") ? "[ 对应决策指引 ]" : "[ Executive Decision Guidance ]"}
+                              </div>
+                              <div className={`text-xs font-sans mt-1 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                                {yaoInfo.developmentDirection}
+                              </div>
+                            </div>
+
+                            {/* Footnote reference */}
+                            <div className={`pt-3 border-t text-[10px] ${isDark ? "border-white/5 text-slate-500" : "border-slate-100 text-slate-400"}`}>
+                              <span className="font-bold">{language.startsWith("zh") ? "要素代表 — " : "Elements — "}</span>
+                              {yaoDetails.representation}
+                            </div>
+
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div className={`mt-4 pt-4 border-t ${
+                          isDark ? "border-white/5 text-slate-300" : "border-slate-100 text-slate-700"
+                        } text-xs leading-relaxed font-sans`}>
+                          <div className="mb-3.5">
+                            <div className={`font-bold text-xs font-sans ${isDark ? "text-slate-200" : "text-slate-900"}`}>
+                              {yaoDetails.levelName}
+                            </div>
+                            <div className={`text-xs font-sans mt-0.5 ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+                              {yaoDetails.levelConcept}
+                            </div>
+                          </div>
+                          
+                          <div className="mb-3.5">
+                            <div className={`font-bold text-xs font-sans ${isDark ? "text-slate-300" : "text-slate-800"}`}>
+                              {language.startsWith("zh") ? "现实中对应人物与要素代表" : "Real-world representation"}
+                            </div>
+                            <div className={`text-xs font-sans mt-0.5 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                              {yaoDetails.representation}
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <div className={`font-bold text-xs font-sans ${isDark ? "text-slate-300" : "text-slate-800"}`}>
+                              {language.startsWith("zh") ? "现实场景决策影响推演" : "Real-world gameplay impact"}
+                            </div>
+                            <div className={`text-xs font-sans mt-0.5 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+                              {yaoDetails.gameAnalysis}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
 
                 </div>
@@ -2358,33 +3063,41 @@ export default function App() {
             </div>
 
             {/* Column 3: AI decision centre & Footer */}
-            <div className={`flex-1 flex flex-col divide-y ${isDark ? "divide-white/10" : "divide-slate-200"} animate-fade-in`}>
+            <div className={`flex-1 flex flex-col lg:h-full lg:overflow-y-auto custom-scrollbar divide-y ${isDark ? "divide-white/10" : "divide-slate-200"} animate-fade-in`}>
               
               {/* Module 3: AI decision centre */}
-              <div className={`p-4 md:p-5 transition-all duration-350 font-songti ${cardStyle.bg}`}>
+              <div className={cardBgStyle}>
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between pb-3 mb-4 gap-3">
                   <div className="flex items-center gap-2.5">
                     <Sparkles className={`w-4 h-4 ${cardStyle.iconColor}`} />
                     <div>
-                      <h2 className={`text-xs font-mono font-bold uppercase tracking-wider ${isDark ? "text-white" : "text-slate-900"}`}>
+                      <h2 className={`text-xs font-sans font-bold uppercase tracking-wider ${isDark ? "text-white" : "text-slate-900"}`}>
                         {t("mod3Title")}
                       </h2>
-                      <p className={`text-[10px] font-mono ${isDark ? "text-white/45" : "text-slate-500"}`}>
+                      <p className={`text-[10px] font-sans ${isDark ? "text-white/45" : "text-slate-500"}`}>
                         {t("mod3Sub")}
                       </p>
                     </div>
                   </div>
                   
                   {/* Verdict Badge */}
-                  <div className={`text-[9.5px] font-mono font-bold px-3 py-1.5 rounded-sm flex items-center gap-1.5 tracking-wider uppercase ${cardStyle.badge}`}>
-                    <Award className="w-3.5 h-3.5" />
-                    <span>{t("ausp_" + activeVerdict) || activeVerdict}</span>
+                  <div className={`rounded-sm flex items-center gap-1.5 tracking-wider uppercase font-sans ${
+                    (activeVerdict === "凶" || activeVerdict === "Systemic Risk" || activeVerdict === "Highly Inauspicious")
+                      ? "text-sm font-bold px-4 py-2.5 bg-rose-500 text-white shadow-lg shadow-rose-500/15"
+                      : `text-[9.5px] font-mono font-bold px-3 py-1.5 ${cardStyle.badge}`
+                  }`}>
+                    {!(activeVerdict === "凶" || activeVerdict === "Systemic Risk" || activeVerdict === "Highly Inauspicious") && (
+                      <Award className="w-3.5 h-3.5" />
+                    )}
+                    <span className={(activeVerdict === "凶" || activeVerdict === "Systemic Risk" || activeVerdict === "Highly Inauspicious") ? "text-base font-black px-1.5 scale-110 tracking-widest inline-block" : ""}>
+                      {t(getVerdictTranslationKey(activeVerdict)) || activeVerdict}
+                    </span>
                   </div>
                 </div>
 
-                <div className="space-y-6 font-songti">
+                <div className="space-y-6">
                   {/* Verdict descriptive intro */}
-                  <p className={`text-xs italic mt-1 pb-3 border-b font-songti ${
+                  <p className={`text-xs italic mt-1 pb-3 border-b ${
                     isDark ? "text-white/60 border-white/5" : "text-slate-600 border-slate-100"
                   }`}>
                     "{cardStyle.desc}"
@@ -2392,13 +3105,13 @@ export default function App() {
 
                   {/* Strategic analysis log text */}
                   <div>
-                    <h4 className={`text-[9px] font-mono font-bold uppercase tracking-widest mb-2.5 ${
+                    <h4 className={`text-[9px] font-sans font-bold uppercase tracking-widest mb-2.5 ${
                       isDark ? "text-white/40" : "text-slate-400"
                     }`}>
                       {t("evalAnalysis")}
                     </h4>
-                    <div className={`border p-4 rounded-sm text-xs leading-relaxed font-songti ${
-                      isDark ? "bg-black/40 border-white/5 text-white/95" : "bg-white border-slate-100 text-slate-700"
+                    <div className={`border p-4 rounded-sm text-xs leading-relaxed ${
+                      isDark ? "bg-black/40 border-white/5 text-slate-300" : "bg-white border-slate-100 text-slate-600"
                     }`}>
                       {renderAnalysis(apiResult.aiOutput?.analysis || "")}
                     </div>
@@ -2406,7 +3119,7 @@ export default function App() {
 
                   {/* Interactive localized task milestones guides */}
                   <div>
-                    <h4 className={`text-[9px] font-mono font-bold uppercase tracking-widest mb-3 ${
+                    <h4 className={`text-[9px] font-sans font-bold uppercase tracking-widest mb-3 ${
                       isDark ? "text-white/40" : "text-slate-400"
                     }`}>
                       {t("tacticalRoadmap")}
@@ -2421,43 +3134,63 @@ export default function App() {
                           triggerText = match[1];
                         }
 
-                        return (
-                          <div key={aIdx} className={`flex flex-col gap-2 p-3 rounded-sm border ${
-                            isDark ? "bg-black/25 border-white/5 text-white/80" : "bg-white border-slate-200/80 text-slate-700"
-                          }`}>
-                            <div className="flex items-start gap-3">
-                              <div className={`h-5 w-5 rounded-sm flex items-center justify-center text-[10px] font-mono font-bold shrink-0 border ${
-                                isDark ? "bg-white/5 text-[#06b6d4] border-white/10" : "bg-slate-100 text-cyan-600 border-slate-200"
-                              }`}>
-                                0{aIdx + 1}
-                              </div>
-                              <span className="text-xs leading-relaxed font-songti flex-1">
-                                {displayText}
-                              </span>
-                            </div>
+                        const bracketMatch = displayText.match(/^\[(.*?)\]\s*(.*)/);
+                        let tagText = "";
+                        let contentText = displayText;
+                        if (bracketMatch) {
+                          tagText = bracketMatch[1];
+                          contentText = bracketMatch[2];
+                        }
 
-                            {triggerText && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  handleSendChatMessage(triggerText);
-                                  setTimeout(() => {
-                                    const chatContainer = document.getElementById("hexa-terminal-scroller");
-                                    if (chatContainer) {
-                                      chatContainer.scrollIntoView({ behavior: "smooth", block: "center" });
-                                    }
-                                  }, 100);
-                                }}
-                                className={`self-start mt-1 flex items-center gap-1.5 px-2.5 py-1 text-[9px] font-mono tracking-wide uppercase border rounded-sm transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer ${
-                                  isDark 
-                                    ? "bg-cyan-950/20 text-cyan-400 border-cyan-500/20 hover:bg-cyan-500/10 hover:border-cyan-500/45"
-                                    : "bg-cyan-50 text-cyan-700 border-cyan-200 hover:bg-cyan-100 hover:border-cyan-400"
-                                }`}
-                              >
-                                <Sparkles className="w-3.5 h-3.5 animate-[pulse_2s_infinite]" />
-                                <span>{language.startsWith("zh") ? "⚡ 模拟此战术推演" : "⚡ Simulate This Strategy"}</span>
-                              </button>
-                            )}
+                        return (
+                          <div key={aIdx} className={`p-3 rounded-sm border ${
+                            isDark ? "bg-black/25 border-white/5 text-slate-300" : "bg-white border-slate-200/80 text-slate-600"
+                          }`}>
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex items-start gap-3 flex-1">
+                                <div className={`h-5 w-5 rounded-sm flex items-center justify-center text-[10px] font-mono font-bold shrink-0 border ${
+                                  isDark ? "bg-white/5 text-rose-500 border-white/10" : "bg-slate-100 text-rose-600 border-slate-200"
+                                }`}>
+                                  0{aIdx + 1}
+                                </div>
+                                <div className="flex-1 text-left text-xs leading-relaxed">
+                                  {tagText ? (
+                                    <div className="text-left leading-relaxed">
+                                      <span className={`inline-flex items-center px-1.5 py-0.5 text-[9.5px] font-sans font-medium rounded-sm tracking-wide mr-1.5 align-middle select-none ${
+                                        isDark 
+                                          ? "bg-slate-800 text-slate-300 border border-slate-700/60" 
+                                          : "bg-slate-700 text-slate-100"
+                                      }`}>
+                                        {tagText}
+                                      </span>
+                                      <span className={`${isDark ? "text-slate-300" : "text-slate-600"} align-middle`}>
+                                        {contentText}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <span className={isDark ? "text-slate-300" : "text-slate-600"}>
+                                      {displayText}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {triggerText && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleSendChatMessage(triggerText)}
+                                  className={`shrink-0 flex items-center gap-1 px-2 py-0.5 mt-0.5 text-[9px] font-sans tracking-wider uppercase border rounded-sm transition-colors duration-150 cursor-pointer whitespace-nowrap ${
+                                    isDark 
+                                      ? "bg-rose-950/25 text-rose-400 border-rose-500/20 hover:bg-rose-500/15 hover:border-rose-500/40"
+                                      : "bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100 hover:border-rose-400"
+                                  }`}
+                                  title={language.startsWith("zh") ? "模拟此战术推演" : "Simulate Tactic"}
+                                >
+                                  <Sparkles className="w-3 h-3 text-rose-500 shrink-0" />
+                                  <span>{language.startsWith("zh") ? "模拟推演" : "Simulate"}</span>
+                                </button>
+                              )}
+                            </div>
                           </div>
                         );
                       })}
@@ -2466,241 +3199,350 @@ export default function App() {
 
                   {/* Stacking metatags vertically inside Column 3 to maximize horizontal breath */}
                   <div className="grid grid-cols-1 gap-4 pt-2">
-                    {/* Waixing */}
-                    <div className={`border p-4 rounded-sm ${
-                      isDark ? "bg-black/30 border-white/5" : "bg-slate-50 border-slate-200/80"
-                    }`}>
-                      <span className={`text-[8px] uppercase tracking-wider font-mono block mb-1.5 font-bold ${
-                        isDark ? "text-white/40" : "text-slate-400"
-                      }`}>
-                        {t("phenomEcho")}
-                      </span>
-                      <p className={`text-xs leading-relaxed font-songti ${isDark ? "text-white/70" : "text-slate-600"}`}>
-                        {apiResult.aiOutput?.phenomenologicalEcho}
-                      </p>
-                    </div>
-
                     {/* Yingqi / Catalyst Window */}
                     <div className={`border p-4 rounded-sm flex flex-col justify-between ${
                       isDark ? "bg-black/30 border-white/5" : "bg-slate-50 border-slate-200/80"
                     }`}>
                       <div>
-                        <span className={`text-[8px] uppercase tracking-wider font-mono block mb-1.5 font-bold ${
-                          isDark ? "text-white/40" : "text-slate-400"
-                        } flex items-center gap-1`}>
-                          <span>{t("catalystWindow")}</span>
-                          <Sparkles className="w-2.5 h-2.5 text-emerald-500 shrink-0" />
+                        <span className={`text-[11.5px] uppercase tracking-wider font-sans block mb-2.5 font-bold ${
+                          isDark ? "text-white/45" : "text-slate-500"
+                        }`}>
+                          {t("catalystWindow")}
                         </span>
-
+                        
                         {/* Fully Unlocked YingQi + Real Interactive Calendar Sync for All Users! */}
-                        <div className="space-y-2 mt-1">
-                          <div className={`text-xs leading-relaxed font-songti flex items-center gap-1.5 ${isDark ? "text-white/70" : "text-slate-600"}`}>
-                            <Clock className="w-4 h-4 text-emerald-500 shrink-0 animate-[pulse_1.5s_infinite]" />
-                            <span>
-                              {apiResult.aiOutput?.catalystWindow || "HOUR OF THE RABBIT (05:00-07:00)"}
-                            </span>
-                          </div>
+                        <div className="mt-1">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
+                            <div className={`text-xs leading-relaxed ${isDark ? "text-slate-300" : "text-slate-600"}`}>
+                              <span>
+                                {apiResult.aiOutput?.catalystWindow || "HOUR OF THE RABBIT (05:00-07:00)"}
+                              </span>
+                            </div>
 
-                          {/* Live Calendar synchronization wizard */}
-                          <div className="mt-2.5 border-t border-emerald-500/10 pt-2 bg-transparent">
-                            {calendarSyncStatus === "idle" ? (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setCalendarSyncStatus("syncing");
-                                  setTimeout(() => {
-                                    setCalendarSyncStatus("success");
-                                  }, 1500);
-                                }}
-                                className="w-full text-center py-0.5 px-1 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-800/80 dark:text-emerald-300/75 opacity-75 hover:opacity-100 border border-emerald-500/10 font-mono font-normal text-[6px] tracking-wide rounded-sm uppercase cursor-pointer transition-all flex items-center justify-center gap-1"
-                              >
-                                {t("syncToSysCalendar")}
-                              </button>
-                            ) : calendarSyncStatus === "syncing" ? (
-                              <div className="p-1 px-2 bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/20 rounded-sm text-[7.2px] font-mono uppercase tracking-wide flex items-center justify-center gap-1 animate-pulse">
-                                <span>{t("shakingHandsWithCalendar")}</span>
-                              </div>
-                            ) : (
-                              <div className="p-1 px-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-sm text-[7.2px] font-mono leading-relaxed uppercase tracking-wide">
-                                <span className="font-bold flex items-center gap-1 mb-0.5 text-emerald-400"><CheckCircle2 className="w-2.5 h-2.5 text-emerald-400 shrink-0" /> {t("calendarIntegrated")}</span>
-                                {t("calendarIntegratedDesc")} {question.slice(0, 18)}...
-                              </div>
-                            )}
+                             {/* Live Calendar synchronization wizard aligned to the right like simulate action */}
+                             <div className="shrink-0">
+                               {calendarSyncStatus === "idle" ? (
+                                 <button
+                                   type="button"
+                                   onClick={() => {
+                                     setCalendarSyncStatus("syncing");
+                                     setTimeout(() => {
+                                       setCalendarSyncStatus("success");
+                                     }, 1550);
+                                   }}
+                                   className={`shrink-0 flex items-center justify-center px-2.5 py-1 text-xs font-sans border rounded-sm transition-colors duration-150 cursor-pointer whitespace-nowrap ${
+                                     isDark 
+                                       ? "bg-rose-950/25 text-rose-400 border-rose-500/20 hover:bg-rose-500/15 hover:border-rose-500/40"
+                                       : "bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100 hover:border-rose-400"
+                                   }`}
+                                 >
+                                   <span>{t("syncToSysCalendar")}</span>
+                                 </button>
+                               ) : calendarSyncStatus === "syncing" ? (
+                                 <div className={`p-1 px-2.5 rounded-sm border text-xs font-sans flex items-center justify-center ${
+                                   isDark 
+                                     ? "bg-rose-950/20 text-rose-400 border-rose-500/20"
+                                     : "bg-rose-50 text-rose-700 border-rose-200"
+                                 }`}>
+                                   <span>{t("shakingHandsWithCalendar")}</span>
+                                 </div>
+                               ) : (
+                                 <div className={`p-1 px-2.5 rounded-sm border text-xs font-sans flex items-center justify-center ${
+                                   isDark 
+                                     ? "bg-rose-950/30 text-rose-400 border-rose-500/30"
+                                     : "bg-rose-100 text-rose-800 border-rose-300"
+                                 }`}>
+                                   <span className="font-semibold">{t("calendarIntegrated")}</span>
+                                 </div>
+                               )}
+                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Independent Prime Coordinating & Auspicious Zodiac Days Panel */}
+                    {/* Waixing */}
                     <div className={`border p-4 rounded-sm ${
                       isDark ? "bg-black/30 border-white/5" : "bg-slate-50 border-slate-200/80"
                     }`}>
-                      <span className={`text-[8px] uppercase tracking-wider font-mono block mb-1.5 font-bold ${
-                        isDark ? "text-white/40" : "text-slate-400"
+                      <span className={`text-[11.5px] uppercase tracking-wider font-sans block mb-2.5 font-bold ${
+                        isDark ? "text-white/45" : "text-slate-500"
                       }`}>
-                        {t("primeCoordinating")}
+                        {t("phenomEcho")}
                       </span>
-                      {(() => {
-                        const coord = getPrimeCoordinatingDetails();
-                        if (!coord) return null;
-                        return (
-                          <div className="space-y-1.5 mt-1 font-songti">
-                            <div className={`text-xs ${isDark ? "text-white/70" : "text-slate-600"}`}>
-                              <span className={`font-mono text-[9px] uppercase tracking-wider block font-bold ${isDark ? "text-[#06b6d4]" : "text-cyan-700"}`}>
-                                {t("supportingElementalForce")}
-                              </span>
-                              <span className="font-bold">{coord.element}</span>
-                            </div>
-                            <div className={`text-xs ${isDark ? "text-white/70" : "text-slate-600"} mt-0.5`}>
-                              <span className={`font-mono text-[9px] uppercase tracking-wider block font-bold ${isDark ? "text-[#f59e0b]" : "text-amber-700"}`}>
-                                {t("auspiciousZodiacDays")}
-                              </span>
-                              <span>{coord.zodiacs} <span className="text-[10px] opacity-60 font-mono">({coord.favorableDays})</span></span>
-                            </div>
-                          </div>
-                        );
-                      })()}
+                      <p className={`text-xs leading-relaxed ${isDark ? "text-slate-300" : "text-slate-600"}`}>
+                        {apiResult.aiOutput?.phenomenologicalEcho}
+                      </p>
                     </div>
+
+                    {/* Unified Prime Coordinating Panel - Refactored into 2 separate cards */}
+                    {(() => {
+                      const rawElement = apiResult?.payload?.tiGua?.trigram?.element || "";
+                      let elementKey = "Fire";
+                      if (rawElement === "金") elementKey = "Metal";
+                      if (rawElement === "木") elementKey = "Wood";
+                      if (rawElement === "水") elementKey = "Water";
+                      if (rawElement === "火") elementKey = "Fire";
+                      if (rawElement === "土") elementKey = "Earth";
+
+                      const details = getUnifiedAssetSynergyDetails(elementKey, language);
+                      return (
+                        <>
+                          {/* Card 1: 高价值执行节点 */}
+                          <div className={`border p-4 rounded-sm ${
+                            isDark ? "bg-black/30 border-white/5" : "bg-slate-50 border-slate-200/80"
+                          }`}>
+                            <span className={`text-[11.5px] uppercase tracking-wider font-sans block mb-2.5 font-bold ${
+                              isDark ? "text-white/45" : "text-slate-500"
+                            }`}>
+                              {language.startsWith("zh") ? "高价值执行节点" : "High-Value Execution Nodes"}
+                            </span>
+                            <p className={`text-xs leading-relaxed font-sans font-normal ${isDark ? "text-slate-300" : "text-slate-600"}`}>
+                              {details.synergyComponent}
+                            </p>
+                          </div>
+
+                          {/* Card 2: 高胜率执行周期节点 */}
+                          <div className={`border p-4 rounded-sm ${
+                            isDark ? "bg-black/30 border-white/5" : "bg-slate-50 border-slate-200/80"
+                          }`}>
+                            <span className={`text-[11.5px] uppercase tracking-wider font-sans block mb-2.5 font-bold ${
+                              isDark ? "text-white/45" : "text-slate-500"
+                            }`}>
+                              {language.startsWith("zh") ? "高胜率执行周期节点" : "Resonant Execution Timeline"}
+                            </span>
+                            <p className={`text-xs leading-relaxed font-sans font-normal ${isDark ? "text-slate-300" : "text-slate-600"}`}>
+                              {details.resonantTimeline}
+                            </p>
+                          </div>
+                        </>
+                      );
+                    })()}
 
                   </div>
 
                 </div>
               </div>
 
+            </div>
+
+            {/* Column 4: Hexa AI Chat Counsel */}
+            <div className={`flex-1 flex flex-col lg:h-full lg:overflow-hidden divide-y ${isDark ? "divide-white/10" : "divide-slate-200"} animate-fade-in`}>
+              
               {/* Module 5: Hexa AI Stateful Terminal Chat Portal */}
               {activeHistoryId && apiResult && (
-                <div className={`p-4 md:p-5 border-t transition-all duration-350 font-mono ${
+                <div className={`p-4 md:p-5 transition-all duration-350 font-mono h-full lg:h-full flex flex-col justify-between overflow-hidden min-h-0 ${
                   isDark ? "bg-[#0d1322] border-white/5" : "bg-slate-50 border-slate-200"
                 }`}>
-                  <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-dashed border-cyan-500/15">
-                    <div className="flex items-center gap-2">
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
-                      </span>
-                      <h3 className={`text-[10px] font-bold tracking-wider uppercase flex items-center gap-1.5 ${
-                        isDark ? "text-cyan-400" : "text-cyan-700"
-                      }`}>
-                        ⚡ Hexa AI Chat Counsel
-                      </h3>
-                    </div>
-                    <span className="text-[8px] opacity-50 tracking-widest uppercase">
-                      Session: {activeHistoryId.slice(0, 8)}
-                    </span>
-                  </div>
-
-                  {/* Chat message display area */}
-                  <div 
-                    id="hexa-terminal-scroller"
-                    className={`h-[240px] overflow-y-auto pr-1 mb-3 space-y-3 custom-scrollbar text-[11px] placeholder-neutral-400 p-2 rounded-sm ${
-                      isDark ? "bg-black/40 text-neutral-300" : "bg-white text-neutral-700 border border-slate-100"
-                    }`}
-                  >
-                    {/* Opening welcome briefing from advisor if this session has no message history */}
-                    {(!chatSessions[activeHistoryId] || chatSessions[activeHistoryId].length === 0) && (
-                      <div className="space-y-1 bg-cyan-950/5 dark:bg-white/5 border border-dashed border-cyan-500/10 p-2.5 rounded-sm">
-                        <span className="text-[8.5px] font-extrabold text-cyan-400 block uppercase">
-                          ⚜️ [ Hexa Advisor Alignment Briefing ]
-                        </span>
-                        <p className="leading-relaxed font-songti text-[10.5px]">
-                          {language.startsWith("zh")
-                            ? `我是 Hexa 决策参谋。已挂载本卷轴的五行运数。请在下方输入您考虑的战术变化（如：延长收账期限、重构履约合同、引入第三方担保、进行仓储对冲），以便精确推演您的策略抉择、资金安全（体卦）和外部应力（用卦）的动态转化。`
-                            : `I am Hexa Counselor. The energetic attributes of this session's hexagram are securely locked into place. Specify your strategic operational adjustments (such as: lengthening credit periods, relocating supply chain bottlenecks, introducing sovereign guarantees, or hedging inventory buffers) to calculate the cyclical transformed elements.`}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Chat Messages */}
-                    {(chatSessions[activeHistoryId] || []).map((msg, mIdx) => (
-                      <div key={mIdx} className="space-y-1 text-left">
-                        <div className="flex items-center justify-between">
-                          <span className={`text-[8.5px] font-extrabold tracking-wider uppercase ${
-                            msg.role === "user" ? "text-slate-400" : "text-cyan-400"
-                          }`}>
-                            {msg.role === "user" ? `👤 [ Executive Proposer ]` : `🏛️ [ Hexa AI Counsel ]`}
-                          </span>
-                          <span className="text-[7.5px] opacity-35 font-mono">
-                            {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                          </span>
-                        </div>
-                        <div className={`leading-relaxed font-songti text-[11px] p-2 rounded-sm whitespace-pre-wrap ${
-                          msg.role === "user" 
-                            ? isDark ? "bg-white/5 border border-white/5" : "bg-slate-100 border border-slate-200/50"
-                            : isDark ? "bg-[#0d1322]" : "bg-cyan-50/20"
+                  <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                    <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-dashed border-cyan-500/15 shrink-0">
+                      <div className="flex items-center">
+                        <h3 className={`text-xs font-bold tracking-wider uppercase flex items-center gap-1.5 ${
+                          isDark ? "text-cyan-400" : "text-cyan-700"
                         }`}>
-                          {msg.content}
+                          HEXA AI
+                        </h3>
+                      </div>
+                      <span className="text-[10px] opacity-50 tracking-widest uppercase font-sans">
+                        {t("sessionLabel")}: {activeHistoryId ? activeHistoryId.replace(/^(cast|キャスト|auto-monthly)-/, "").slice(0, 8) : "--"}
+                      </span>
+                    </div>
+
+                    {/* Chat message display area */}
+                    <div 
+                      id="hexa-terminal-scroller"
+                      className={`flex-1 min-h-0 overflow-y-auto pr-1 mb-3 space-y-3 custom-scrollbar text-[13px] placeholder-neutral-400 p-2 rounded-sm ${
+                        isDark ? "bg-black/40 text-neutral-300" : "bg-white text-neutral-700 border border-slate-100"
+                      } ${(chatSessions[activeHistoryId] || []).length === 0 ? "flex flex-col items-center justify-center" : ""}`}
+                    >
+                      {/* Opening welcome briefing/Carousel from advisor when history is empty */}
+                      {(chatSessions[activeHistoryId] || []).length === 0 ? (
+                        <div className="flex flex-col items-center justify-center max-w-lg w-full mx-auto py-12 px-4 text-center space-y-6 font-sans">
+                          {/* Main Dynamic Greeting in Elegant Thin Serif (Songti) */}
+                          <div className="w-full text-center py-4">
+                            {/* Gemini-style dynamic looping text with elegant fading transition */}
+                            <div className="min-h-[48px] flex items-center justify-center">
+                              <span 
+                                key={greetingIndex}
+                                className={`text-2xl sm:text-3xl md:text-4xl tracking-wide leading-relaxed transition-all duration-300 ${
+                                  isDark 
+                                    ? "bg-clip-text text-transparent bg-gradient-to-r from-slate-100 via-cyan-100 to-teal-100" 
+                                    : "bg-clip-text text-transparent bg-gradient-to-r from-slate-800 via-cyan-950 to-slate-900"
+                                }`}
+                                style={{ 
+                                  fontFamily: '"Microsoft YaHei", "微软雅黑", system-ui, -apple-system, sans-serif',
+                                  fontWeight: 300 
+                                }}
+                              >
+                                {getGreetingData(language).rotating[greetingIndex % getGreetingData(language).rotating.length]}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Centered Input Box reminiscent of Gemini's start screen */}
+                          <div className="w-full mt-4">
+                            {userTier === "Free" ? (
+                              <div className="p-4 border border-dashed border-amber-500/15 bg-amber-500/[0.02] rounded-sm flex flex-col items-center justify-center text-center gap-2">
+                                <p className="text-[11px] max-w-[280px] leading-relaxed text-slate-400 font-sans">
+                                  {language.startsWith("zh")
+                                    ? "深度 Hexa AI 决策参谋阁聊天是 专属专业顾问版 (Pro) 尊享功能。"
+                                    : "Interactive Stateful Chat Consultation with Hexa Advisor is reserved for Pro Consultant users."}
+                                </p>
+                                <button 
+                                  type="button" 
+                                  onClick={() => setIsSubscriptionOpen(true)}
+                                  className="py-2 px-4 bg-[#f59e0b] hover:bg-[#d97706] text-black font-semibold text-[11px] uppercase rounded-sm cursor-pointer transition-all duration-150 shadow-md hover:shadow-[#f59e0b]/10 whitespace-nowrap"
+                                >
+                                  {language.startsWith("zh") ? "开阁升级解锁" : "Upgrade to Pro"}
+                                </button>
+                              </div>
+                            ) : (
+                              <div className={`p-1 flex items-center gap-2 rounded-full border shadow-sm transition-all duration-300 w-full ${
+                                isDark 
+                                  ? "bg-black/60 border-neutral-800 focus-within:border-cyan-500 focus-within:ring-1 focus-within:ring-cyan-500/20" 
+                                  : "bg-white border-slate-200 focus-within:border-cyan-500 focus-within:ring-1 focus-within:ring-cyan-500/20"
+                              }`}>
+                                <input
+                                  type="text"
+                                  value={currentChatMessage}
+                                  onChange={(e) => setCurrentChatMessage(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      e.preventDefault();
+                                      handleSendChatMessage();
+                                    }
+                                  }}
+                                  disabled={isChatLoading}
+                                  placeholder={
+                                    language.startsWith("zh")
+                                      ? "问问 HEXA AI..."
+                                      : "Ask HEXA AI..."
+                                  }
+                                  className={`flex-1 text-sm py-2 px-4 focus:outline-none bg-transparent font-sans ${
+                                    isDark ? "text-white placeholder-neutral-600" : "text-slate-800 placeholder-slate-450"
+                                  }`}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={handleSendChatMessage}
+                                  disabled={isChatLoading || !currentChatMessage.trim()}
+                                  className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-30 disabled:pointer-events-none cursor-pointer duration-150 shrink-0 shadow-sm mr-1"
+                                  title="Send inquiry"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-3.5 h-3.5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" />
+                                  </svg>
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ) : null}
 
-                    {/* Chat Error Indicator */}
-                    {chatError && (
-                      <div className="p-2 border border-dashed border-rose-500/20 bg-rose-950/10 rounded-xs text-[10px] text-rose-400 leading-normal text-left">
-                        {chatError}
-                      </div>
-                    )}
+                      {/* Chat Messages */}
+                      {(chatSessions[activeHistoryId] || []).map((msg, mIdx) => {
+                        const isUser = msg.role === "user";
+                        return (
+                          <div key={mIdx} className={`flex flex-col ${isUser ? "items-end text-right" : "items-start text-left"} w-full space-y-0.5 font-sans`}>
+                            <span className="text-[9px] opacity-30 font-mono select-none px-1">
+                              {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                            <div className={`leading-relaxed text-xs ${
+                              isUser 
+                                ? `max-w-[60%] w-fit p-3 rounded-sm text-right ${
+                                    isDark 
+                                      ? "bg-slate-800/80 border border-slate-700/60 text-slate-200" 
+                                      : "bg-slate-100 border border-slate-200/80 text-slate-700"
+                                  }`
+                                : `w-full py-1 px-0 bg-transparent border-0 text-left`
+                            }`}>
+                              {isUser ? parseBoldText(msg.content, isDark) : renderMarkdownMessage(msg.content, isDark)}
+                            </div>
+                          </div>
+                        );
+                      })}
 
-                    {/* Chat Loading Placeholder */}
-                    {isChatLoading && (
-                      <div className="flex items-center gap-2 p-1.5 opacity-70 animate-pulse text-[9.5px]">
-                        <RefreshCw className="w-3.5 h-3.5 animate-spin text-cyan-500" />
-                        <span>Calculating matrix vectors alignment...</span>
-                      </div>
-                    )}
+                      {/* Chat Error Indicator */}
+                      {chatError && (
+                        <div className="p-2 border border-dashed border-rose-500/20 bg-rose-950/10 rounded-xs text-xs text-rose-400 leading-normal text-left">
+                          {chatError}
+                        </div>
+                      )}
+
+                      {/* Chat Loading Placeholder */}
+                      {isChatLoading && (
+                        <div className="flex items-center gap-2 p-1.5 opacity-70 text-xs">
+                          <span>
+                            {language.startsWith("zh-TW") ? "正在演算要素關聯矩陣與博弈路徑..." :
+                             language.startsWith("zh") ? "正在演算要素关联矩阵与博弈路径..." :
+                             language.startsWith("ja") ? "時空間マトリクスの整合性とシミュレーション経路を計算中..." :
+                             language.startsWith("ko") ? "시공간 매트릭스 정렬 및 시뮬레이션 경로 계산 중..." :
+                             language.startsWith("es") ? "Calculando la alineación de vectores de la matriz..." :
+                             language.startsWith("id") ? "Menghitung penyelarasan vektor matriks..." :
+                             language.startsWith("ms") ? "Mengira penjajaran vektor matriks..." :
+                             language.startsWith("th") ? "กำลังคำนวณการจัดตำแหน่งเวกเตอร์เมทริกซ์..." :
+                             "Calculating matrix vectors alignment..."}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Stateful Interaction / Upgrade Overlay */}
-                  {userTier === "Free" ? (
-                    <div className="p-3 border border-dashed border-rose-500/20 bg-rose-500/5 rounded-sm flex flex-col items-center justify-center text-center gap-2">
-                      <Lock className="w-4 h-4 text-rose-400 animate-pulse" />
-                      <p className="text-[9.5px] max-w-[280px] leading-relaxed text-slate-400 font-sans">
-                        {language.startsWith("zh")
-                          ? "深度 Hexa AI 决策参谋阁聊天是 专属专业顾问版 (Pro) 尊享功能。"
-                          : "Interactive Stateful Chat Consultation with Hexa Advisor is reserved for Pro Consultant users."}
-                      </p>
-                      <button 
-                        type="button" 
-                        onClick={() => setIsSubscriptionOpen(true)}
-                        className="py-1 px-3 bg-gradient-to-r from-orange-500 to-purple-600 text-white font-bold tracking-wider text-[8.5px] uppercase rounded-sm cursor-pointer"
-                      >
-                        {language.startsWith("zh") ? "升级顾问版解锁" : "Upgrade to Pro"}
-                      </button>
-                    </div>
-                  ) : (
-                    /* Active chat text bar input field */
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={currentChatMessage}
-                        onChange={(e) => setCurrentChatMessage(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            handleSendChatMessage();
+                  {((chatSessions[activeHistoryId] || []).length > 0) && (
+                    userTier === "Free" ? (
+                      <div className="p-4 border border-dashed border-amber-500/15 bg-amber-500/[0.02] rounded-sm flex flex-col items-center justify-center text-center gap-2">
+                        <p className="text-[11px] max-w-[280px] leading-relaxed text-slate-400 font-sans">
+                          {language.startsWith("zh")
+                            ? "深度 Hexa AI 决策参谋阁聊天是 专属专业顾问版 (Pro) 尊享功能。"
+                            : "Interactive Stateful Chat Consultation with Hexa Advisor is reserved for Pro Consultant users."}
+                        </p>
+                        <button 
+                          type="button" 
+                          onClick={() => setIsSubscriptionOpen(true)}
+                          className="py-2 px-4 bg-[#f59e0b] hover:bg-[#d97706] text-black font-semibold text-[11px] uppercase rounded-sm cursor-pointer transition-all duration-150 shadow-md hover:shadow-[#f59e0b]/10 whitespace-nowrap"
+                        >
+                          {language.startsWith("zh") ? "开阁升级解锁" : "Upgrade to Pro"}
+                        </button>
+                      </div>
+                    ) : (
+                      /* Active chat text bar input field */
+                      <div className="flex gap-2 font-sans items-center">
+                        <input
+                          type="text"
+                          value={currentChatMessage}
+                          onChange={(e) => setCurrentChatMessage(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleSendChatMessage();
+                            }
+                          }}
+                          disabled={isChatLoading}
+                          placeholder={
+                            language.startsWith("zh")
+                              ? "问问 HEXA AI..."
+                              : "Ask HEXA AI..."
                           }
-                        }}
-                        disabled={isChatLoading}
-                        placeholder={
-                          language.startsWith("zh")
-                            ? "输入业务方案调整以请求变卦五行推演..."
-                            : "Enter hypothetical strategic operational change..."
-                        }
-                        className={`flex-1 text-xs py-2 px-3 focus:outline-none rounded-sm font-sans transition-all ${
-                          isDark 
-                            ? "bg-black/60 border border-neutral-850 focus:border-cyan-500 placeholder-neutral-600 focus:ring-1 focus:ring-cyan-500/20 text-white" 
-                            : "bg-white border border-slate-200 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/20 placeholder-slate-400 text-slate-800"
-                        }`}
-                      />
-                      <button
-                        type="button"
-                        onClick={handleSendChatMessage}
-                        disabled={isChatLoading || !currentChatMessage.trim()}
-                        className="p-2 border border-cyan-500/30 text-cyan-400 bg-cyan-950/20 rounded-sm hover:bg-cyan-500/20 disabled:opacity-50 disabled:pointer-events-none cursor-pointer text-xs uppercase font-bold tracking-wider hover:border-cyan-400 transition-all duration-200"
-                        title="Send consultation response"
-                      >
-                        {language.startsWith("zh") ? "咨 询" : "Consult"}
-                      </button>
-                    </div>
+                          className={`flex-1 text-sm py-2 px-3 focus:outline-none rounded-sm font-sans transition-all ${
+                            isDark 
+                              ? "bg-black/60 border border-neutral-850 focus:border-cyan-500 placeholder-neutral-600 focus:ring-1 focus:ring-cyan-500/20 text-white" 
+                              : "bg-white border border-slate-200 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/20 placeholder-slate-400 text-slate-800"
+                          }`}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleSendChatMessage}
+                          disabled={isChatLoading || !currentChatMessage.trim()}
+                          className="w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-30 disabled:pointer-events-none cursor-pointer duration-150 shrink-0 shadow-sm"
+                          title="Send consultation response"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" />
+                          </svg>
+                        </button>
+                      </div>
+                    )
                   )}
                 </div>
               )}
@@ -2717,7 +3559,7 @@ export default function App() {
             }`}>
               <div className="relative mb-8">
                 {/* Breathing Concentric Loops (4-color halo) */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-red-500/10 via-orange-500/10 via-cyan-500/10 to-purple-500/10 filter blur-[28px] animate-pulse scale-150" />
+                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-red-500/10 via-orange-500/10 via-cyan-500/10 to-purple-500/10 filter blur-[28px] scale-150" />
                 
                 {/* 4-directional compass structure */}
                 <div className={`w-28 h-28 rounded-full border flex items-center justify-center relative animate-spin-slow keep-round ${
@@ -2731,18 +3573,18 @@ export default function App() {
                   {/* Right pointer (3 o'clock) - Orange for 2. 时间 */}
                   <div className="absolute right-0.5 top-1/2 -mt-1 w-2 h-2 bg-[#f97316] rounded-full" />
                   
-                  {/* Bottom pointer (6 o'clock) - Blue/Cyan for 3. 空间 */}
-                  <div className="absolute bottom-0.5 left-1/2 -ml-1 w-2 h-2 bg-[#06b6d4] rounded-full" />
+                  {/* Bottom pointer (6 o'clock) - Blue for 3. 空间 */}
+                  <div className="absolute bottom-0.5 left-1/2 -ml-1 w-2 h-2 bg-[#3b82f6] rounded-full" />
                   
                   {/* Left pointer (9 o'clock) - Purple for 4. 意念 */}
                   <div className="absolute left-0.5 top-1/2 -mt-1 w-2 h-2 bg-[#a855f7] rounded-full" />
                 </div>
               </div>
               
-              <h3 className={`text-base font-serif font-medium tracking-widest mb-1.5 uppercase ${isDark ? "text-white" : "text-slate-900"}`}>
+              <h3 className={`text-base font-medium tracking-widest mb-1.5 uppercase ${isDark ? "text-white" : "text-slate-900"}`}>
                 {t("idleTitle")}
               </h3>
-              <p className={`text-xs max-w-sm leading-relaxed mb-6 font-serif ${isDark ? "text-white/40" : "text-slate-500"}`}>
+              <p className={`text-xs max-w-sm leading-relaxed mb-6 ${isDark ? "text-white/40" : "text-slate-500"}`}>
                 {t("idleSub")}
               </p>
 
@@ -2751,19 +3593,19 @@ export default function App() {
                 isDark ? "bg-white/5 border-white/5 text-white/50 divide-y divide-white/5" : "bg-slate-50 border-slate-100 text-slate-500 divide-y divide-slate-100"
               }`}>
                 <div className="flex items-center gap-2.5 pb-2">
-                  <CheckSquare className="w-3.5 h-3.5 text-red-500 animate-pulse shrink-0" />
+                  <CheckSquare className="w-3.5 h-3.5 text-red-500 shrink-0" />
                   <span>{t("currentDecision")}</span>
                 </div>
                 <div className="flex items-center gap-2.5 py-2">
-                  <CheckSquare className="w-3.5 h-3.5 text-orange-500 animate-pulse shrink-0" />
+                  <CheckSquare className="w-3.5 h-3.5 text-orange-500 shrink-0" />
                   <span>{t("calibT")}</span>
                 </div>
                 <div className="flex items-center gap-2.5 py-2">
-                  <CheckSquare className="w-3.5 h-3.5 text-cyan-500 animate-pulse shrink-0" />
+                  <CheckSquare className="w-3.5 h-3.5 text-blue-500 shrink-0" />
                   <span>{t("calibS")}</span>
                 </div>
                 <div className="flex items-center gap-2.5 pt-2">
-                  <CheckSquare className="w-3.5 h-3.5 text-purple-500 animate-pulse shrink-0" />
+                  <CheckSquare className="w-3.5 h-3.5 text-purple-500 shrink-0" />
                   <span>{t("calibK")}</span>
                 </div>
               </div>
@@ -2902,20 +3744,38 @@ export default function App() {
 
 
       {/* Persistent global footer */}
-      <footer className={`py-6 border-t font-mono uppercase tracking-widest mt-auto ${
-        isDark ? "border-white/10 bg-black/60 text-zinc-400" : "border-slate-200 bg-slate-100 text-slate-600"
+      <footer className={`py-4 lg:py-2.5 shrink-0 border-t font-mono uppercase tracking-widest ${
+        isDark ? "border-white/5 bg-neutral-950 text-neutral-500" : "border-neutral-200 bg-neutral-800 text-neutral-450"
       }`}>
         <div className="w-full max-w-none flex flex-col md:flex-row justify-between items-center gap-4 px-4 md:px-8 xl:px-10 text-[9px] font-normal">
           <div className="flex flex-row items-center gap-1.5 whitespace-nowrap text-left">
             <span>{t("systemPulse")}: {t("synchronized")}</span>
             <span className="opacity-30 mx-1.5">•</span>
-            <span>{t("confidence")}: {confidenceScore.toFixed(2)}%</span>
+            {isLoading ? (
+              <span>
+                {t("confidence")}:{" "}
+                <span className="font-bold">
+                  {rollingConfidence.toFixed(2)}% [{language.startsWith("zh") ? "计算中..." : "RUNNING..."}]
+                </span>
+              </span>
+            ) : apiResult ? (
+              <span>
+                {t("confidence")}:{" "}
+                <span className="font-bold">
+                  {confidenceScore.toFixed(2)}%
+                </span>
+              </span>
+            ) : (
+              <span className="opacity-50">
+                {t("confidence")}: -- . -- %
+              </span>
+            )}
           </div>
           
           <div className="flex flex-col sm:flex-row items-center gap-1.5 sm:gap-3 text-right">
             <span>{t("suiteFooter")}</span>
             <span className="hidden sm:inline opacity-30">|</span>
-            <span className="text-cyan-600 dark:text-cyan-500">Version 2.5.0 (Iter-Build: 2026.05.24)</span>
+            <span className="text-[8.5px] text-slate-500 dark:text-neutral-500 select-all font-mono tracking-widest">Version 2.5.30</span>
           </div>
         </div>
       </footer>

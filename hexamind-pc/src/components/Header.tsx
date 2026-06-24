@@ -64,7 +64,7 @@ export default function Header({
         <h1 className={`text-2xl md:text-3xl font-light tracking-widest uppercase pb-1 md:pb-0 ${brandTitle}`}>
           HexaMind{' '}
           <span className="relative inline-block ml-1">
-            <span className="absolute -inset-1 rounded bg-gradient-to-r from-red-500 via-orange-500 via-cyan-500 to-purple-500 opacity-20 blur-sm animate-pulse font-bold" />
+            <span className="absolute -inset-1 rounded bg-gradient-to-r from-red-500 via-orange-500 via-cyan-500 to-purple-500 opacity-20 blur-sm font-bold" />
             <span className="relative bg-gradient-to-r from-red-500 via-orange-500 via-cyan-500 to-purple-600 bg-clip-text text-transparent font-bold">
               易道流光
             </span>
@@ -80,18 +80,18 @@ export default function Header({
           {/* Subscriber plan badge */}
           <button
             onClick={onOpenSubscription}
-            className={`px-2.5 py-1.5 rounded-sm border text-[9px] font-mono font-bold tracking-widest cursor-pointer transition-all uppercase flex items-center gap-1 hover:scale-[1.03] active:scale-[0.97] ${
+            className={`px-2.5 py-1.5 rounded-sm border text-[9px] font-mono font-bold tracking-widest cursor-pointer transition-all uppercase flex items-center gap-1 ${
               userTier === "Pro"
                 ? "bg-purple-500/10 border-purple-500/50 text-purple-400 dark:text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.25)] hover:bg-purple-500/20"
                 : "bg-slate-500/10 border-slate-500/30 text-slate-500 dark:text-slate-400 hover:bg-slate-500/20"
             }`}
           >
-            {userTier === "Pro" ? "👑 PRO CONSULTANT" : "🆓 INCEPTION FREE"}
+            {userTier === "Pro" ? t("statusProBadge") : t("statusFreeBadge")}
           </button>
 
           <button
             onClick={onOpenSettings}
-            className={`p-2 rounded-full border transition-all duration-300 flex items-center justify-center cursor-pointer relative active:scale-95 group keep-round ${
+            className={`p-2 rounded-full border transition-all duration-300 flex items-center justify-center cursor-pointer relative group keep-round ${
               isDark 
                 ? "bg-white/5 border-white/10 hover:border-white/20 text-white/80 hover:text-white" 
                 : "bg-white border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 shadow-sm"
@@ -104,7 +104,7 @@ export default function Header({
                 {user.name.slice(0, 1).toUpperCase()}
               </div>
             ) : (
-              <Settings className="w-4 h-4 animate-spin-slow group-hover:rotate-45 transition-transform" />
+              <Settings className="w-4 h-4 transition-transform" />
             )}
             <div className="absolute top-0 right-0 w-2 h-2 rounded-full bg-[#f59e0b]" />
             <div className="absolute top-0 right-0 w-2 h-2 rounded-full bg-[#f59e0b]" />
@@ -112,7 +112,7 @@ export default function Header({
 
           <button
             onClick={onOpenHistory}
-            className={`p-2 rounded-sm border transition-all duration-300 flex items-center justify-center cursor-pointer active:scale-95 group ${
+            className={`p-2 rounded-sm border transition-all duration-300 flex items-center justify-center cursor-pointer group ${
               isDark 
                 ? "bg-white/5 border-white/10 hover:border-white/20 text-white/80 hover:text-white" 
                 : "bg-white border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 shadow-sm"
@@ -120,7 +120,7 @@ export default function Header({
             title={translationDict[language]["historyArchive"] || "History"}
             id="history-trigger-btn"
           >
-            <History className="w-4 h-4 transition-transform group-hover:scale-110" />
+            <History className="w-4 h-4" />
           </button>
         </div>
     </header>
