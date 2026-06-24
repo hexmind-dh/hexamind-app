@@ -21,7 +21,9 @@ import ParallaxScrollView from '@/components/parallax-scroll-view'
 import { GradientText } from '@/components/gradient-text'
 import { SubscriptionModal } from '@/components/subscription-modal'
 import { SettingsModal } from '@/components/settings-modal'
+import { supabase } from '@/db/supabase'
 import { useStore } from '@/store'
+import { divinate } from '@/lib/divination'
 import type { DivinationResult, DivinationHistoryItem } from '@/types'
 
 const DEFAULT_LAT = 31.23
@@ -140,49 +142,38 @@ export default function IndexScreen() {
       const resolvedLng = userTier === 'Free' ? DEFAULT_LNG : longitude
       const resolvedTs = timestamp || Date.now()
 
-      // 4b. 调用 /api/divinate 云函数
-      // 获取 Supabase session 的 access_token 传给服务端用于鉴权
-      const accessToken = session?.access_token
-
-      const response = await fetch('/api/divinate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-        },
-        body: JSON.stringify({
-          question: question.trim(),
-          latitude: resolvedLat,
-          longitude: resolvedLng,
-          kineticValue: kineticSpeed,
-          timestamp: resolvedTs,
-          language: 'zh-CN',
-        }),
+      // 4b. 调用 divinate Edge Function
+      const apiData = await divinate({
+        question: question.trim(),
+        latitude: resolvedLat,
+        longitude: resolvedLng,
+        kineticValue: kineticSpeed,
+        timestamp: resolvedTs,
+        language: 'zh-CN',
       })
-
-      const apiData = await response.json()
 
       if (!apiData.success) {
         throw new Error(apiData.error || '推演失败')
       }
 
       // 4c. 存入 store 用于详情页渲染
-      const resultId = apiData.recordId
+      const resultId = apiData.recordId ?? `cast-${Date.now()}`
       const result: DivinationResult = {
         success: true,
         confidenceScore: apiData.confidenceScore,
-        input: apiData.input,
-        payload: apiData.payload,
+        input: apiData.input!,
+        payload: apiData.payload!,
         aiOutput: apiData.aiOutput,
       }
 
+      const payload = apiData.payload!
       const historyItem: DivinationHistoryItem = {
         id: resultId,
         date: new Date(resolvedTs).toISOString(),
         question: question.trim(),
-        originalGua: apiData.payload.charts.original.name,
-        conclusion: apiData.payload.relationship.conclusion,
-        auspiciousness: apiData.payload.relationship.auspiciousness,
+        originalGua: payload.charts.original.name,
+        conclusion: payload.relationship.conclusion,
+        auspiciousness: payload.relationship.auspiciousness,
         confidenceScore: apiData.confidenceScore,
         latitude: resolvedLat,
         longitude: resolvedLng,

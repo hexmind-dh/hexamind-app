@@ -24,5 +24,5 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
         return <Redirect href="/login" />;
     }
     // return children
-    return <View className='bg-[#050608f2] min-h-full'>{children}</View>
+    return <View className='bg-[#050608f2] flex-1'>{children}</View>
 }

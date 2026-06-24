@@ -41,7 +41,7 @@ export default function RootLayout() {
     };
 
     bootstrapAuth();
-    initializePreferences().catch(() => {});
+    initializePreferences().catch(() => { });
 
     const subscription = onAuthStateChange((_event, session) => {
       setSession(session);
@@ -69,10 +69,10 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="index" options={{ headerShown: false, title: "" }} />
-        <Stack.Screen name="detail" options={{ headerShown: true }} />
-        <Stack.Screen name="history" options={{ headerShown: true }} />
-        <Stack.Screen name="login" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="detail" options={{ headerShown: true, title: "" }} />
+        <Stack.Screen name="history" options={{ headerShown: true, title: "" }} />
+        <Stack.Screen name="login" options={{ headerShown: false, title: "" }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false, title: "" }} />
         <Stack.Screen name="login-email" options={{ headerShown: true, title: '邮箱登录' }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         {/* 支付结果页 */}

@@ -1,12 +1,3 @@
 {
-  "buildCommand": "npx expo export --platform web",
-  "outputDirectory": "dist",
-  "devCommand": "npx expo start --web",
-  "framework": null,
-  "rewrites": [
-    {
-      "source": "/((?!_expo/|assets/|favicon.ico).*)",
-      "destination": "/index.html"
-    }
-  ]
+  "cleanUrls": true
 }

@@ -175,8 +175,10 @@ export const mockDetailData: DetailScreenData = {
     ],
   },
   moduleFour: {
+    divinationId: 'mock-div-001',
     sessionId: '17821192',
     inputPlaceholder: '问问 HEXA AI...',
     welcomeMessages: ['已就位，随时可以仿真要素演化路径。'],
+    initialMessages: [],
   },
 };

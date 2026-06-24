@@ -91,10 +91,18 @@ export type ModuleThreeData = {
   infoCards: InfoCardData[];
 };
 
+export type ChatMessage = {
+  role: 'user' | 'model';
+  content: string;
+  created_at?: string;
+};
+
 export type ModuleFourData = {
+  divinationId: string;
   sessionId: string;
   inputPlaceholder: string;
   welcomeMessages: string[];
+  initialMessages?: ChatMessage[];
 };
 
 export type DetailScreenData = {

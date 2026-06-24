@@ -141,9 +141,11 @@ function mapRowToDetailData(row: DivinationRow): DetailScreenData {
       ],
     },
     moduleFour: {
+      divinationId: row.id,
       sessionId: row.id.slice(0, 8),
       inputPlaceholder: '问问 HEXA AI...',
       welcomeMessages: ['已就位，随时可以仿真要素演化路径。'],
+      initialMessages: [],
     },
   }
 }
@@ -219,9 +221,11 @@ function mapResultToDetailData(result: DivinationResult, id: string): DetailScre
       ],
     },
     moduleFour: {
+      divinationId: id,
       sessionId: id.slice(0, 8),
       inputPlaceholder: '问问 HEXA AI...',
       welcomeMessages: ['已就位，随时可以仿真要素演化路径。'],
+      initialMessages: [],
     },
   }
 }
@@ -302,7 +306,7 @@ export default function DetailScreen() {
 
   return (
     <MainLayout>
-      <Stack.Screen options={{ headerShown: true, title: data.moduleOne.cards[0]?.name || 'HexaMind' }} />
+      <Stack.Screen options={{ headerShown: true, title: data.moduleOne?.cards[0]?.name || 'HexaMind' }} />
       <ParallaxScrollView>
         <DetailScreenContent data={data} />
       </ParallaxScrollView>

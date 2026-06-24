@@ -41,6 +41,7 @@ export function SubscriptionModal({ visible, onClose }: SubscriptionModalProps) 
 
   // ===== Stripe Customer Portal（管理/取消订阅） =====
   const handleManageSubscription = useCallback(async () => {
+    if (userTier === 'Pro') return
     setManaging(true);
     try {
       const success = await openCustomerPortal();
@@ -50,7 +51,7 @@ export function SubscriptionModal({ visible, onClose }: SubscriptionModalProps) 
     } finally {
       setManaging(false);
     }
-  }, [session, syncProfileFromSupabase]);
+  }, [userTier, session, syncProfileFromSupabase]);
 
   // ===== 降级到 Free（仅本地降级，需在 Stripe 取消订阅） =====
   const handleDowngradeToFree = useCallback(async () => {

@@ -54,7 +54,7 @@ export default function LoginScreen() {
     }
 
     return (
-        <View className="w-full h-screen  flex-1 items-center pt-[20vh] gap-6 px-6">
+        <View className="w-full h-screen bg-[#050608f2]  flex-1 items-center pt-[20vh] gap-6 px-6">
             <View className="gap-2.5">
                 <View className="flex-row flex-wrap items-center gap-1">
                     <Text size={30} className="uppercase font-light tracking-[3px] text-white">
