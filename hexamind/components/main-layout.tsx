@@ -13,9 +13,9 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
 
     if (!authInitialized) {
         return (
-            <View className="flex-1 items-center justify-center gap-3 px-6">
+            <View className="bg-[#050608f2] flex-1 items-center justify-center gap-3 px-6">
                 <ActivityIndicator />
-                <Text>正在检查登录状态...</Text>
+                <Text className='text-white'>正在检查登录状态...</Text>
             </View>
         );
     }

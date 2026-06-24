@@ -18,6 +18,7 @@ import ParallaxScrollView from '@/components/parallax-scroll-view'
 import { GradientText } from '@/components/gradient-text'
 import { SubscriptionModal } from '@/components/subscription-modal'
 import { SettingsModal } from '@/components/settings-modal'
+import * as Location from 'expo-location'
 import { supabase } from '@/db/supabase'
 import { useStore } from '@/store'
 import { divinate } from '@/lib/divination'
@@ -57,21 +58,24 @@ export default function IndexScreen() {
   // 1. 自动获取 GPS
   // ============================================
   useEffect(() => {
-    if (!navigator.geolocation) return
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync()
+      if (status !== 'granted') return
 
-    setGpsLoading(true)
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      setGpsLoading(true)
+      try {
+        const pos = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.High,
+          timeout: 8000,
+        })
         setLatitude(Number(pos.coords.latitude.toFixed(4)))
         setLongitude(Number(pos.coords.longitude.toFixed(4)))
-        setGpsLoading(false)
-      },
-      () => {
+      } catch {
         // 获取失败则保持默认 (31.23, 121.47)
+      } finally {
         setGpsLoading(false)
-      },
-      { enableHighAccuracy: true, timeout: 8000 },
-    )
+      }
+    })()
   }, [])
 
   // ============================================
@@ -248,8 +252,8 @@ export default function IndexScreen() {
             >
               <View className="flex flex-row items-center justify-between">
                 <View className="flex flex-row items-center gap-2">
-                  <SimpleLineIcons name="question" size={16} color="#fb2c36" />
-                  <Text style={{ color: '#fb2c36' }} className="font-bold uppercase tracking-wider">
+                  <SimpleLineIcons name="question" size={14} color="#fb2c36" />
+                  <Text size={14} style={{ color: '#fb2c36' }} className="font-bold uppercase tracking-wider">
                     {t('currentDecision')}
                   </Text>
                 </View>
@@ -262,10 +266,9 @@ export default function IndexScreen() {
 
               <View className="mt-3.5">
                 <TextInput
-                  className="min-h-[60] max-h-[120] rounded-sm p-2 placeholder:text-white/30"
+                  className="min-h-[60] max-h-[120] rounded-sm p-2 text-white placeholder:text-white/30 placeholder:text-sm"
                   style={{
                     backgroundColor: 'rgba(0,0,0,0.5)',
-                    color: 'white',
                   }}
                   multiline
                   value={question}
@@ -283,8 +286,8 @@ export default function IndexScreen() {
             >
               <View className="flex flex-row items-center justify-between">
                 <View className="flex flex-row items-center gap-2">
-                  <MaterialIcons name="access-time" size={16} color="#ff6900" />
-                  <Text style={{ color: '#ff6900' }} className="font-bold uppercase tracking-wider">
+                  <MaterialIcons name="access-time" size={14} color="#ff6900" />
+                  <Text size={14} style={{ color: '#ff6900' }} className="font-bold uppercase tracking-wider">
                     {t('timeSequence')}
                   </Text>
                 </View>
@@ -293,7 +296,7 @@ export default function IndexScreen() {
                   className="rounded-sm border border-orange-500/30 px-1.5 py-0.5"
                   style={{ backgroundColor: 'rgba(255,105,0,0.05)' }}
                 >
-                  <Text style={{ color: '#ff6900' }} size={10}>
+                  <Text style={{ color: '#ff6900' }} size={14}>
                     {t('resetTime')}
                   </Text>
                 </Pressable>
@@ -313,31 +316,34 @@ export default function IndexScreen() {
             >
               <View className="p-3.5">
                 <View className="flex flex-row items-center justify-between">
-                  <View className="flex flex-row items-center gap-2">
-                    <EvilIcons name="location" size={16} color="#2b7fff" />
-                    <Text style={{ color: '#2b7fff' }} className="font-bold uppercase tracking-wider">
+                  <View className="flex flex-row items-center gap-1">
+                    <EvilIcons name="location" size={18} color="#2b7fff" />
+                    <Text size={14} style={{ color: '#2b7fff' }} className="font-bold uppercase tracking-wider">
                       {t('spatialPositioning')}
                     </Text>
                   </View>
                   <Pressable
-                    onPress={() => {
+                    onPress={async () => {
                       if (isFree) {
                         setSubscriptionVisible(true)
                         return
                       }
-                      if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(
-                          (pos) => {
-                            setLatitude(Number(pos.coords.latitude.toFixed(4)))
-                            setLongitude(Number(pos.coords.longitude.toFixed(4)))
-                          },
-                        )
+                      const { status } = await Location.requestForegroundPermissionsAsync()
+                      if (status !== 'granted') return
+                      try {
+                        const pos = await Location.getCurrentPositionAsync({
+                          accuracy: Location.Accuracy.High,
+                        })
+                        setLatitude(Number(pos.coords.latitude.toFixed(4)))
+                        setLongitude(Number(pos.coords.longitude.toFixed(4)))
+                      } catch {
+                        // 静默处理
                       }
                     }}
                     className="rounded-sm border border-[#2b7fff]/30 px-1.5 py-0.5"
                     style={{ backgroundColor: 'rgba(255,105,0,0.05)' }}
                   >
-                    <Text style={{ color: '#2b7fff' }} size={10}>
+                    <Text style={{ color: '#2b7fff' }} size={14}>
                       {gpsLoading ? t('locating') : t('getLocation')}
                     </Text>
                   </Pressable>
@@ -393,8 +399,8 @@ export default function IndexScreen() {
               <View className="p-3.5">
                 <View className="flex flex-row items-center justify-between">
                   <View className="flex flex-row items-center gap-2">
-                    <Feather name="activity" size={16} color="#ad46ff" />
-                    <Text style={{ color: '#ad46ff' }} className="font-bold uppercase tracking-wider">
+                    <Feather name="activity" size={14} color="#ad46ff" />
+                    <Text size={14} style={{ color: '#ad46ff' }} className="font-bold uppercase tracking-wider">
                       {t('kineticPad')}
                     </Text>
                   </View>
