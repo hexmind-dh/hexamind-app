@@ -1,9 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Platform, Pressable, TextInput } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import DateTimePicker, {
-  DateTimePickerEvent,
-} from '@react-native-community/datetimepicker'
+import DateTimePicker from '@/components/form/date-time-picker'
 import Toast from 'react-native-toast-message'
 import { router } from 'expo-router'
 import Ionicons from '@expo/vector-icons/Ionicons'
@@ -11,7 +9,6 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons'
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons'
 import EvilIcons from '@expo/vector-icons/EvilIcons'
-import AntDesign from '@expo/vector-icons/AntDesign'
 import Feather from '@expo/vector-icons/Feather'
 
 import { Text } from '@/components/themed-text'
@@ -41,8 +38,7 @@ export default function IndexScreen() {
   // == 输入状态 ==
   const [question, setQuestion] = useState('')
   const [timestamp, setTimestamp] = useState<number>(Date.now())
-  const [showDatePicker, setShowDatePicker] = useState(false)
-  const [showTimePicker, setShowTimePicker] = useState(false)
+  const isWeb = Platform.OS === 'web'
 
   // == 空间定位 ==
   const [latitude, setLatitude] = useState<number>(DEFAULT_LAT)
@@ -78,35 +74,8 @@ export default function IndexScreen() {
   }, [])
 
   // ============================================
-  // 2. 时间选择
+  // 2. 时间选择（已封装到 DateTimePicker 组件）
   // ============================================
-  const handleDateChange = useCallback(
-    (_event: DateTimePickerEvent, selectedDate?: Date) => {
-      setShowDatePicker(false)
-      if (selectedDate) {
-        const newDate = new Date(timestamp)
-        newDate.setFullYear(selectedDate.getFullYear())
-        newDate.setMonth(selectedDate.getMonth())
-        newDate.setDate(selectedDate.getDate())
-        setTimestamp(newDate.getTime())
-      }
-    },
-    [timestamp],
-  )
-
-  const handleTimeChange = useCallback(
-    (_event: DateTimePickerEvent, selectedDate?: Date) => {
-      setShowTimePicker(false)
-      if (selectedDate) {
-        const newDate = new Date(timestamp)
-        newDate.setHours(selectedDate.getHours())
-        newDate.setMinutes(selectedDate.getMinutes())
-        newDate.setSeconds(0)
-        setTimestamp(newDate.getTime())
-      }
-    },
-    [timestamp],
-  )
 
   // ============================================
   // 3. 手写动能板（简化：点击模拟划动）
@@ -327,54 +296,12 @@ export default function IndexScreen() {
                   </Text>
                 </Pressable>
               </View>
-
-              {/* 日期 */}
-              <Pressable
-                onPress={() => setShowDatePicker(true)}
-                className="mt-3.5 flex flex-row items-center justify-between rounded-sm border border-white/10 p-2"
-                style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
-              >
-                <Text className="text-white/80">
-                  {displayDate.toLocaleDateString('zh-CN', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                  })}
-                </Text>
-                <AntDesign name="calendar" size={16} color="rgba(255,255,255,0.2)" />
-              </Pressable>
-
-              {/* 时间 */}
-              <Pressable
-                onPress={() => setShowTimePicker(true)}
-                className="mt-2 flex flex-row items-center justify-between rounded-sm border border-white/10 p-2"
-                style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
-              >
-                <Text className="text-white/80">
-                  {displayDate.toLocaleTimeString('zh-CN', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </Text>
-                <MaterialIcons name="access-time" size={16} color="rgba(255,255,255,0.2)" />
-              </Pressable>
-
-              {showDatePicker && (
-                <DateTimePicker
-                  value={displayDate}
-                  mode="date"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={handleDateChange}
-                />
-              )}
-              {showTimePicker && (
-                <DateTimePicker
-                  value={displayDate}
-                  mode="time"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={handleTimeChange}
-                />
-              )}
+              {/* 跨平台日期时间选择器 */}
+              <DateTimePicker
+                value={timestamp}
+                onChange={setTimestamp}
+                className="mt-3.5"
+              />
             </View>
 
             {/* ===== 3. 空间定位 ===== */}
