@@ -1,24 +1,13 @@
 {
-    "buildCommand": "bash fix-asset-paths.sh",
     "cleanUrls": true,
-    "headers": [
+    "rewrites": [
         {
-            "source": "/fonts/(.*)",
-            "headers": [
-                {
-                    "key": "Cache-Control",
-                    "value": "public, max-age=31536000, immutable"
-                }
-            ]
+            "source": "/assets/node_modules/.pnpm/:path*/Fonts/:font",
+            "destination": "/assets/:font"
         },
         {
-            "source": "/icons/(.*)",
-            "headers": [
-                {
-                    "key": "Cache-Control",
-                    "value": "public, max-age=31536000, immutable"
-                }
-            ]
+            "source": "/((?!assets/).*)",
+            "destination": "/index.html"
         }
     ]
 }
