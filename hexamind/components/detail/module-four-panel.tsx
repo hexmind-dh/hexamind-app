@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { Text } from '@/components/themed-text';
 import { View } from '@/components/themed-view';
+import { SubscriptionModal } from '@/components/subscription-modal';
 import { useStore } from '@/store';
 import { chat } from '@/lib/divination';
 import { supabase } from '@/db/supabase';
@@ -25,7 +26,7 @@ function GradientWelcomeText({ text }: { text: string }) {
         maskElement={
           <View className="items-center justify-center bg-transparent">
             <Text
-              size={24}
+              size={22}
               className="text-white"
               style={{
                 fontFamily: 'System',
@@ -57,11 +58,10 @@ function ChatBubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === 'user';
   return (
     <View className={`mb-3 ${isUser ? 'items-end' : 'items-start'}`}>
-      <View className={`max-w-[85%] rounded-xl px-4 py-3 ${
-        isUser
-          ? 'bg-blue-600/20 border border-blue-500/20'
-          : 'bg-cyan-950/10 border border-cyan-500/10'
-      }`}>
+      <View className={`max-w-[85%] rounded-xl px-4 py-3 ${isUser
+        ? 'bg-blue-600/20 border border-blue-500/20'
+        : 'bg-cyan-950/10 border border-cyan-500/10'
+        }`}>
         <Text className="text-[10px] font-bold tracking-wider text-cyan-400 mb-1">
           {isUser ? '👤 你' : '🏛️ Hexa AI Counsel'}
         </Text>
@@ -84,6 +84,7 @@ export function ModuleFourPanel({ data }: { data: ModuleFourData }) {
   const [historyLoaded, setHistoryLoaded] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
+  const [subscriptionVisible, setSubscriptionVisible] = useState(false);
   const isPro = userTier === 'Pro';
 
   // 加载历史聊天记录
@@ -163,24 +164,9 @@ export function ModuleFourPanel({ data }: { data: ModuleFourData }) {
     }
   }, [inputValue, sending, messages, data.divinationId, isPro]);
 
-  // 升级 Pro
+  // 升级 Pro - 弹出订阅弹窗
   const handleUpgrade = useCallback(() => {
-    // 关闭当前页面，回到首页弹出订阅窗？
-    // 简单处理：提示用户
-    Alert.alert(
-      'Pro 会员专属',
-      'Hexa AI Counsel 深度对话仅限 Pro 会员使用。是否前往升级？',
-      [
-        { text: '取消', style: 'cancel' },
-        {
-          text: '去升级',
-          onPress: () => {
-            // 打开订阅弹窗 - 通过 router 回到首页
-            // 简化处理：存一个标记，首页检测到后自动弹出
-          },
-        },
-      ],
-    );
+    setSubscriptionVisible(true);
   }, []);
 
   return (
@@ -224,17 +210,22 @@ export function ModuleFourPanel({ data }: { data: ModuleFourData }) {
                 <ActivityIndicator size="small" color="#22d3ee" />
               ) : (
                 <>
-                  <View className="mb-4 rounded border border-dashed border-cyan-500/10 bg-white/5 p-3">
-                    <Text className="mb-1 text-[9px] font-bold uppercase tracking-wider text-cyan-400">
-                      ⚜️ [ Hexa Advisor Alignment Briefing ]
-                    </Text>
-                    <Text className="text-[11px] leading-relaxed text-white/70">
-                      我是 Hexa 决策参谋。已挂载本卷轴的五行运数。请在下方输入您考虑的战术变化（如：延长收账期限、重构履约合同、引入第三方担保、进行仓储对冲），以便精确推演您的策略抉择、资金安全和外部应力的动态转化。
-                    </Text>
-                  </View>
-                  {data.welcomeMessages.map((msg, i) => (
-                    <GradientWelcomeText key={i} text={msg} />
-                  ))}
+                  {isPro && (
+                    <>
+                      <View className="mb-4 rounded border border-dashed border-cyan-500/10 bg-white/5 p-3">
+                        <Text className="mb-1 text-[9px] font-bold uppercase tracking-wider text-cyan-400">
+                          ⚜️ [ Hexa Advisor Alignment Briefing ]
+                        </Text>
+                        <Text className="text-[11px] leading-relaxed text-white/70">
+                          我是 Hexa 决策参谋。已挂载本卷轴的五行运数。请在下方输入您考虑的战术变化（如：延长收账期限、重构履约合同、引入第三方担保、进行仓储对冲），以便精确推演您的策略抉择、资金安全和外部应力的动态转化。
+                        </Text>
+                      </View>
+                      {data.welcomeMessages.map((msg, i) => (
+                        <GradientWelcomeText key={i} text={msg} />
+                      ))}
+                    </>
+                  )}
+
                   {/* Free 用户提示 */}
                   {!isPro && (
                     <View className="mt-4 rounded border border-amber-500/20 bg-amber-500/5 p-3">
@@ -300,6 +291,11 @@ export function ModuleFourPanel({ data }: { data: ModuleFourData }) {
           )}
         </View>
       </View>
+
+      <SubscriptionModal
+        visible={subscriptionVisible}
+        onClose={() => setSubscriptionVisible(false)}
+      />
     </KeyboardAvoidingView>
   );
 }

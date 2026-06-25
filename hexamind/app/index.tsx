@@ -16,6 +16,7 @@ import ParallaxScrollView from '@/components/parallax-scroll-view'
 import { GradientText } from '@/components/gradient-text'
 import { SubscriptionModal } from '@/components/subscription-modal'
 import { SettingsModal } from '@/components/settings-modal'
+// @ts-ignore
 import * as Location from 'expo-location'
 import { KineticScratchPad } from '@/components/kinetic-scratch-pad'
 import { supabase } from '@/db/supabase'
@@ -375,7 +376,7 @@ export default function IndexScreen() {
 
               {/* Free 锁定遮罩 */}
               {isFree && (
-                <View className="absolute inset-0 z-25 flex flex-col items-center justify-center rounded-sm border-2 border-dashed border-neutral-700/80 bg-black/90 p-4">
+                <View className="absolute inset-0 z-25 flex flex-col items-center justify-center rounded-sm border-2 border-dashed border-neutral-700/80 bg-black p-4">
                   <Text className="text-white/50 uppercase tracking-wider font-bold">
                     {t('locationLocked')}
                   </Text>

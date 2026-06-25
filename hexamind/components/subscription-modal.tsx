@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, Alert, Modal, Pressable, ScrollView } from 'react-native';
+import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, useWindowDimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -21,6 +21,7 @@ export function SubscriptionModal({ visible, onClose }: SubscriptionModalProps) 
   const syncProfileFromSupabase = useStore((state) => state.syncProfileFromSupabase);
   const session = useStore((state) => state.session);
 
+  const { height: windowHeight } = useWindowDimensions();
   const [paying, setPaying] = useState(false);
   const [managing, setManaging] = useState(false);
   const { t } = useTranslation();
@@ -99,7 +100,7 @@ export function SubscriptionModal({ visible, onClose }: SubscriptionModalProps) 
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable onPress={onClose} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', padding: 20, justifyContent: 'center' }}>
         <Pressable onPress={(e) => e.stopPropagation()}>
-          <View className="max-h-[90vh] rounded-lg border border-neutral-800 bg-[#0b0c0d] px-5 py-5 shadow-[0_0_80px_rgba(0,0,0,0.95)]" style={{ borderColor: 'rgba(38,38,38,1)' }}>
+          <View className="rounded-lg border border-neutral-800 bg-[#0b0c0d] px-5 py-5 shadow-[0_0_80px_rgba(0,0,0,0.95)]" style={{ maxHeight: windowHeight * 0.9 - 40, borderColor: 'rgba(38,38,38,1)' }}>
             {/* Top accent bar */}
             <View className="absolute top-0 left-0 w-full h-[4px] bg-neutral-700" />
 

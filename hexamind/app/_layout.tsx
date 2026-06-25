@@ -65,12 +65,23 @@ export default function RootLayout() {
     }
   }, [session, syncProfileFromSupabase]);
 
+  const defaultStackScreen = {
+    headerShown: false,
+    title: "",
+    headerStyle: {
+      backgroundColor: '#050608f2',
+      elevation: 0,           // Android
+      shadowOpacity: 0,       // iOS
+    },
+    headerTintColor: 'white',
+    headerShadowVisible: false,
+  }
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="index" options={{ headerShown: false, title: "" }} />
         <Stack.Screen name="detail" options={{ headerShown: true, title: "" }} />
-        <Stack.Screen name="history" options={{ headerShown: true, title: "" }} />
+        <Stack.Screen name="history" options={{ ...defaultStackScreen, headerShown: true, title: "" }} />
         <Stack.Screen name="login" options={{ headerShown: false, title: "" }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false, title: "" }} />
         <Stack.Screen name="login-email" options={{ headerShown: true, title: '邮箱登录' }} />

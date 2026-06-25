@@ -380,7 +380,7 @@ export function KineticScratchPad({
 
       {/* Free 锁定遮罩 */}
       {isFree && (
-        <View className="absolute inset-0 z-25 flex flex-col items-center justify-center rounded-sm border-2 border-dashed border-[#ad46ff]/40 bg-black/90 p-4">
+        <View className="absolute inset-0 z-25 flex flex-col items-center justify-center rounded-sm border-2 border-dashed border-[#ad46ff]/40 bg-black p-4">
           <Text className="font-bold uppercase tracking-wider text-white/50">
             {t('kineticLocked')}
           </Text>
