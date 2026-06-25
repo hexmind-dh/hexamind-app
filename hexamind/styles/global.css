@@ -1,7 +1,0 @@
-@import "tailwindcss";
-@import "uniwind";
-
-@source "../app";
-@source "../components";
-@source "../hooks";
-@source "../store";
