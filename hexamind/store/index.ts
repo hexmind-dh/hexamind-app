@@ -140,30 +140,64 @@ export const useStore = create<Store>()((set, get) => ({
 
   syncProfileFromSupabase: async (userId: string) => {
     try {
-      // 1. 查 profiles，不存在则自动创建（Google/Apple OAuth 用户首次登录）
+      const userMeta = get().session?.user?.user_metadata ?? {}
+      const userEmail = get().session?.user?.email ?? null
+      const latestName = userMeta.full_name ?? userMeta.name ?? null
+      const latestAvatar = userMeta.avatar_url ?? userMeta.picture ?? null
+      const latestProvider =
+        userMeta.provider ?? get().session?.user?.app_metadata?.provider ?? null
+
+      // 1. 查 profiles，不存在则创建；存在则同步最新的 OAuth 元数据
       let profile = await profilesRepository.getById(userId)
 
       if (!profile) {
-        const userMeta = get().session?.user?.user_metadata ?? {}
-        const userEmail = get().session?.user?.email ?? null
-        profile = await profilesRepository.create({
-          id: userId,
-          name: userMeta.full_name ?? userMeta.name ?? null,
+        try {
+          profile = await profilesRepository.create({
+            id: userId,
+            name: latestName,
+            email: userEmail,
+            avatar_url: latestAvatar,
+            provider: latestProvider,
+            tier: 'Free',
+          })
+        } catch (createErr: any) {
+          // 并发场景：另一个并发调用已创建了此 profile，重新读取
+          if (createErr?.code === '23505') {
+            const existing = await profilesRepository.getById(userId)
+            if (existing) {
+              profile = existing
+            } else {
+              throw createErr
+            }
+          } else {
+            throw createErr
+          }
+        }
+      }
+
+      // 2. profile 已存在（trigger 自动创建或之前登录），同步最新 OAuth 元数据
+      if (
+        profile.name !== latestName ||
+        profile.email !== userEmail ||
+        profile.avatar_url !== latestAvatar ||
+        profile.provider !== latestProvider
+      ) {
+        await profilesRepository.update(userId, {
+          name: latestName,
           email: userEmail,
-          avatar_url: userMeta.avatar_url ?? userMeta.picture ?? null,
-          provider: userMeta.provider ?? get().session?.user?.app_metadata?.provider ?? null,
-          tier: 'Free',
+          avatar_url: latestAvatar,
+          provider: latestProvider,
         })
       }
 
-      // 2. profiles 是 Pro → 直接返回
+      // 3. profiles 是 Pro → 直接返回
       if (profile.tier === 'Pro') {
         set({ userTier: 'Pro', userTierLoading: false })
         await safeStorage.setItem(USER_TIER_STORAGE_KEY, 'Pro')
         return
       }
 
-      // 3. profiles 是 Free，再查 subscriptions 兜底（可能是支付后 webhook 更新了 subscriptions 但 profiles.tier 未同步）
+      // 4. profiles 是 Free，再查 subscriptions 兜底（支付后 webhook 可能只更新了 subscriptions 但 profiles.tier 未同步）
       const { data: sub } = await supabase
         .from('subscriptions')
         .select('tier, status')
@@ -172,18 +206,16 @@ export const useStore = create<Store>()((set, get) => ({
 
       if (sub?.tier === 'Pro' || sub?.status === 'active' || sub?.status === 'trialing') {
         set({ userTier: 'Pro', userTierLoading: false })
-        // 同步修复 profiles.tier
         await profilesRepository.setTier(userId, 'Pro')
         await safeStorage.setItem(USER_TIER_STORAGE_KEY, 'Pro')
         return
       }
 
-      // 4. 确定是 Free
+      // 5. 确定是 Free
       set({ userTier: 'Free', userTierLoading: false })
       await safeStorage.setItem(USER_TIER_STORAGE_KEY, 'Free')
     } catch (err) {
       console.error('syncProfileFromSupabase failed:', err)
-      // 同步失败时结束 loading，保持当前 userTier 不变
       set({ userTierLoading: false })
     }
   },

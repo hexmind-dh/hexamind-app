@@ -20,9 +20,6 @@ function removeUndefined<T extends Record<string, unknown>>(value: T): T {
 
 export const profilesRepository = {
   /**
-   * 获取单个用户资料
-   */
-  /**
    * 创建用户资料
    */
   async create(profile: ProfileInsert, client?: DbClient): Promise<Profile> {
