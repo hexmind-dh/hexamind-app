@@ -85,10 +85,11 @@ export default function LoginScreen() {
                         </Pressable>
                         <Pressable
                             disabled={authActionLoading !== null}
-                            onPress={() => handleLogin('apple')}
+                            // onPress={() => handleLogin('apple')}
+                            onPress={() => { }}
                             className="items-center rounded-xl border border-white/20 px-3 py-3">
                             <Text className="font-semibold text-white">
-                                {authActionLoading === 'apple' ? '跳转中...' : '使用 Apple 登录'}
+                                {authActionLoading === 'apple' ? '跳转中...' : '使用 Apple 登录(待开发)'}
                             </Text>
                         </Pressable>
 

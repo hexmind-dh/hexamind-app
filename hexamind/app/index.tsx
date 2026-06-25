@@ -9,8 +9,6 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons'
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons'
 import EvilIcons from '@expo/vector-icons/EvilIcons'
-import Feather from '@expo/vector-icons/Feather'
-
 import { Text } from '@/components/themed-text'
 import { View } from '@/components/themed-view'
 import { MainLayout } from '@/components/main-layout'
@@ -19,6 +17,7 @@ import { GradientText } from '@/components/gradient-text'
 import { SubscriptionModal } from '@/components/subscription-modal'
 import { SettingsModal } from '@/components/settings-modal'
 import * as Location from 'expo-location'
+import { KineticScratchPad } from '@/components/kinetic-scratch-pad'
 import { supabase } from '@/db/supabase'
 import { useStore } from '@/store'
 import { divinate } from '@/lib/divination'
@@ -83,17 +82,15 @@ export default function IndexScreen() {
   // ============================================
 
   // ============================================
-  // 3. 手写动能板（简化：点击模拟划动）
+  // 3. 刮刮乐动能板回调
   // ============================================
-  const handleKineticTap = useCallback(() => {
-    if (userTier !== 'Pro') {
-      setSubscriptionVisible(true)
-      return
-    }
-    setHasScratched(true)
-    // 模拟一个随机动能值
-    setKineticSpeed(Number((0.5 + Math.random() * 4.5).toFixed(3)))
-  }, [userTier])
+  const handleScratchUpdate = useCallback(
+    (speed: number, scratched: boolean) => {
+      setKineticSpeed(speed)
+      setHasScratched(scratched)
+    },
+    [],
+  )
 
   // ============================================
   // 4. 执行推演
@@ -214,9 +211,10 @@ export default function IndexScreen() {
             <View className="mt-2 ml-auto flex w-full flex-row items-center justify-end gap-2">
               <Pressable
                 onPress={() => setSubscriptionVisible(true)}
-                className="rounded-sm border border-slate-500/30 bg-slate-500/10 px-2.5 py-1.5 opacity-80"
+                className={`rounded-sm px-2.5 py-1.5 opacity-80 shadow-[0_0_12px_rgba(168,85,247,0.25)] border ${isFree ? 'border-slate-500/30 bg-slate-500/10' : 'bg-purple-500/10 border-purple-500/50    '}`}
+              // className="flex items-center gap-1  "
               >
-                <Text size={12} className="text-white">
+                <Text size={12} className={`transition-all uppercase ${isFree ? 'text-white' : 'text-purple-400 font-bold tracking-widest '}`}>
                   {isFree ? t('starterEdition') : t('proEdition')}
                 </Text>
               </Pressable>
@@ -391,66 +389,15 @@ export default function IndexScreen() {
               )}
             </View>
 
-            {/* ===== 4. 意念动能板 ===== */}
-            <View
-              className="relative mt-3.5 rounded-sm border border-[#ad46ff]/30"
-              style={{ backgroundColor: 'rgba(251,44,54,0.02)' }}
-            >
-              <View className="p-3.5">
-                <View className="flex flex-row items-center justify-between">
-                  <View className="flex flex-row items-center gap-2">
-                    <Feather name="activity" size={14} color="#ad46ff" />
-                    <Text size={14} style={{ color: '#ad46ff' }} className="font-bold uppercase tracking-wider">
-                      {t('kineticPad')}
-                    </Text>
-                  </View>
-                  {hasScratched && (
-                    <Pressable
-                      onPress={() => {
-                        setHasScratched(false)
-                        setKineticSpeed(1.23)
-                      }}
-                      className="rounded-sm border border-purple-500/30 px-1.5 py-0.5"
-                    >
-                      <Text style={{ color: '#ad46ff' }} size={10}>
-                        {t('reset')}
-                      </Text>
-                    </Pressable>
-                  )}
-                </View>
-
-                <Pressable
-                  onPress={handleKineticTap}
-                  className="mt-4 flex h-[60] flex-row items-center justify-center rounded-sm"
-                  style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
-                >
-                  {hasScratched ? (
-                    <Text size={13} className="text-purple-400">
-                      {t('kineticValue')}：{kineticSpeed.toFixed(3)} m/s²
-                    </Text>
-                  ) : (
-                    <Text size={12} className="text-white/30">
-                      {t('kineticHint')}
-                    </Text>
-                  )}
-                </Pressable>
-              </View>
-
-              {/* Free 锁定遮罩 */}
-              {isFree && (
-                <View className="absolute inset-0 z-25 flex flex-col items-center justify-center rounded-sm border-2 border-dashed border-[#ad46ff]/40 bg-black/90 p-4">
-                  <Text className="font-bold uppercase tracking-wider text-white/50">
-                    {t('kineticLocked')}
-                  </Text>
-                  <Text
-                    size={14}
-                    className="mt-1.5 max-w-[260px] text-center text-white/50 leading-relaxed"
-                  >
-                    {t('kineticLockedDesc')}
-                  </Text>
-                </View>
-              )}
-            </View>
+            {/* ===== 4. 意念动能板（刮刮乐） ===== */}
+            <KineticScratchPad
+              isFree={isFree}
+              onSubscriptionRequest={() => setSubscriptionVisible(true)}
+              kineticSpeed={kineticSpeed}
+              hasScratched={hasScratched}
+              onScratchUpdate={handleScratchUpdate}
+              isLoading={isLoading}
+            />
 
             {/* ===== 5. 执行按钮 ===== */}
             <Pressable
