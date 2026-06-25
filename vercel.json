@@ -2,8 +2,8 @@
     "cleanUrls": true,
     "rewrites": [
         {
-            "source": "/assets/node_modules/:path*",
-            "destination": "/assets/node_modules/:path*"
+            "source": "/assets/node_modules/(.*)/Fonts/(.+\\.(?:ttf|otf|woff2?))",
+            "destination": "/assets/$2"
         },
         {
             "source": "/((?!assets/).*)",
