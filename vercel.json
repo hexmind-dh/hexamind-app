@@ -2,8 +2,8 @@
     "cleanUrls": true,
     "rewrites": [
         {
-            "source": "/assets/node_modules/.pnpm/:path*/Fonts/:font",
-            "destination": "/assets/:font"
+            "source": "/assets/node_modules/:path*",
+            "destination": "/assets/node_modules/:path*"
         },
         {
             "source": "/((?!assets/).*)",
