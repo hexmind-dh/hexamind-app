@@ -1,0 +1,2 @@
+# hexamind-app
+hexamind
