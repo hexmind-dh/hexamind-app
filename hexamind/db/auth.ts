@@ -57,7 +57,7 @@ async function signInWithOAuth(provider: SupportedOAuthProvider): Promise<OAuthR
     provider,
     options: {
       redirectTo: authRedirectTo,
-      skipBrowserRedirect: true,
+      skipBrowserRedirect: Platform.OS !== 'web',
       queryParams:
         provider === 'google'
           ? {
@@ -73,6 +73,17 @@ async function signInWithOAuth(provider: SupportedOAuthProvider): Promise<OAuthR
     throw new Error(`${provider} 登录地址获取失败`)
   }
 
+  if (Platform.OS === 'web') {
+    // Web: 全页面跳转（避免浏览器弹窗拦截）
+    // 用户跳转到 Google OAuth → 授权后重定向回 /auth/callback?code=xxx
+    window.location.href = data.url
+    return {
+      cancelled: true, // 调用方无需等待，session 由 callback 页处理
+      session: null,
+    }
+  }
+
+  // 原生: 使用系统浏览器（SFSafariViewController / Chrome Custom Tabs）
   const result = await WebBrowser.openAuthSessionAsync(data.url, authRedirectTo)
 
   if (result.type !== 'success' || !result.url) {
@@ -138,4 +149,4 @@ export function onAuthStateChange(
   return subscription
 }
 
-export { authRedirectPath, authRedirectTo, getErrorMessage }
+export { authRedirectPath, authRedirectTo, getErrorMessage, completeOAuthSession }
