@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — Axiom64</title>
+  <meta name="description" content="Privacy Policy for Axiom64 — Clinical-grade executive decision simulation platform.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-primary: #0a0c0f;
+      --bg-secondary: #111418;
+      --bg-card: #161a1f;
+      --border-subtle: #1e2329;
+      --border-active: #2a3039;
+      --text-primary: #e4e7eb;
+      --text-secondary: #8b919b;
+      --text-muted: #5a6069;
+      --accent-amber: #d4a843;
+      --accent-green: #3cb371;
+      --accent-blue: #5b9bd5;
+      --grid-color: rgba(255, 255, 255, 0.025);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.75;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+      background-size: 64px 64px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 48px 0 40px;
+      border-bottom: 1px solid var(--border-subtle);
+      position: relative;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      width: 120px;
+      height: 1px;
+      background: var(--accent-amber);
+    }
+
+    .logo-wrap {
+      width: 64px; height: 64px;
+      border-radius: 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-active);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .logo-wrap img { width: 42px; height: 42px; object-fit: contain; }
+
+    .header-info h1 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 26px; font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+
+    .header-info .subtitle {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px; color: var(--accent-amber);
+      letter-spacing: 0.08em; text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .meta-bar {
+      display: flex; align-items: center; gap: 20px;
+      padding: 20px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; color: var(--text-muted);
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--border-subtle);
+      flex-wrap: wrap;
+    }
+
+    .content {
+      padding: 48px 0 64px;
+    }
+
+    .content h2 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px; font-weight: 500;
+      color: var(--text-primary);
+      margin: 40px 0 16px;
+      padding-top: 8px;
+      letter-spacing: -0.01em;
+    }
+
+    .content h2:first-child { margin-top: 0; }
+
+    .content p {
+      color: var(--text-secondary);
+      font-size: 15px;
+      margin-bottom: 14px;
+    }
+
+    .content ul {
+      list-style: none;
+      padding-left: 0;
+      margin-bottom: 20px;
+    }
+
+    .content ul li {
+      color: var(--text-secondary);
+      font-size: 14px;
+      padding: 6px 0 6px 20px;
+      position: relative;
+    }
+
+    .content ul li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--accent-amber);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+    }
+
+    .data-type-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    @media (max-width: 500px) {
+      .data-type-grid { grid-template-columns: 1fr; }
+      .header { flex-direction: column; align-items: flex-start; }
+    }
+
+    .data-type-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 18px 20px;
+    }
+
+    .data-type-card .dt-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; color: var(--accent-amber);
+      letter-spacing: 0.06em; text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .data-type-card .dt-desc {
+      font-size: 13px; color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .data-type-card .dt-purpose {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; color: var(--text-muted);
+      letter-spacing: 0.04em;
+      margin-top: 6px;
+    }
+
+    .highlight-box {
+      background: rgba(212, 168, 67, 0.06);
+      border: 1px solid rgba(212, 168, 67, 0.18);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin: 24px 0;
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.75;
+    }
+
+    .highlight-box strong {
+      color: var(--accent-amber);
+    }
+
+    .footer {
+      padding: 40px 0;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; color: var(--text-muted);
+      letter-spacing: 0.04em;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .footer a {
+      color: var(--text-muted); text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer a:hover { color: var(--accent-amber); }
+
+    .footer .sep { color: var(--border-active); }
+
+    a { color: var(--accent-blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <header class="header">
+      <div class="logo-wrap">
+        <img src="../icon.png" alt="Axiom64 Logo"
+             onerror="this.style.display='none';this.parentElement.innerHTML='<svg width=\'42\' height=\'42\' viewBox=\'0 0 48 48\' fill=\'none\'><rect width=\'48\' height=\'48\' rx=\'12\' fill=\'%23161a1f\'/><text x=\'24\' y=\'32\' text-anchor=\'middle\' font-family=\'JetBrains Mono,monospace\' font-size=\'20\' font-weight=\'600\' fill=\'%23d4a843\'>A6</text></svg>'">
+      </div>
+      <div class="header-info">
+        <h1>Privacy Policy</h1>
+        <div class="subtitle">Axiom64</div>
+      </div>
+    </header>
+
+    <div class="meta-bar">
+      <span>Effective Date: July 15, 2026</span>
+      <span>|</span>
+      <span>Last Updated: July 15, 2026</span>
+    </div>
+
+    <div class="content">
+
+      <p>Axiom64 ("we", "us", or "our") operates a clinical-grade decision simulation platform designed to assist executives and professionals with strategic reasoning. This Privacy Policy explains what data we collect, why we collect it, and how we protect it.</p>
+
+      <div class="highlight-box">
+        <strong>Key Principle:</strong> Axiom64 is a decision simulation tool. We do <strong>not</strong> collect phone numbers, home addresses, contacts, payment card details, or other sensitive personal identifiers. All computation data is stored on <strong>Supabase</strong> infrastructure with encryption at rest and in transit.
+      </div>
+
+      <!-- Data Types Collected -->
+      <h2>1. Data Types We Collect</h2>
+      <p>To provide decision simulation services, Axiom64 collects exactly <strong>six</strong> categories of data. None of them include sensitive personal identifiers such as phone numbers, physical addresses, or contacts.</p>
+
+      <div class="data-type-grid">
+        <div class="data-type-card">
+          <div class="dt-label">User ID</div>
+          <div class="dt-desc">A system-generated identifier to associate your decision sessions and preferences with your account.</div>
+          <div class="dt-purpose">Purpose: Account identification &amp; session continuity</div>
+        </div>
+        <div class="data-type-card">
+          <div class="dt-label">Crash Data</div>
+          <div class="dt-desc">Diagnostic information captured when the application encounters an unexpected termination.</div>
+          <div class="dt-purpose">Purpose: Stability monitoring &amp; bug resolution</div>
+        </div>
+        <div class="data-type-card">
+          <div class="dt-label">Device ID</div>
+          <div class="dt-desc">An anonymous device-level identifier used for infrastructure scaling and abuse prevention.</div>
+          <div class="dt-purpose">Purpose: Service integrity &amp; capacity planning</div>
+        </div>
+        <div class="data-type-card">
+          <div class="dt-label">Precise Location</div>
+          <div class="dt-desc">High-accuracy location data used exclusively for spatiotemporal computation within the decision engine.</div>
+          <div class="dt-purpose">Purpose: Core spatiotemporal modeling</div>
+        </div>
+        <div class="data-type-card">
+          <div class="dt-label">Coarse Location</div>
+          <div class="dt-desc">Approximate location derived from network information, used as a fallback for regional context.</div>
+          <div class="dt-purpose">Purpose: Regional analysis &amp; fallback modeling</div>
+        </div>
+        <div class="data-type-card">
+          <div class="dt-label">Purchase History</div>
+          <div class="dt-desc">Records of in-app purchases and subscription transactions managed through the App Store.</div>
+          <div class="dt-purpose">Purpose: Subscription management &amp; entitlement verification</div>
+        </div>
+      </div>
+
+      <!-- How We Use Data -->
+      <h2>2. How We Use Your Data</h2>
+      <p>All collected data serves the core function of Axiom64: providing precise, clinical-grade decision simulation. Specifically:</p>
+      <ul>
+        <li><strong>Spatiotemporal Computation:</strong> Location data (precise and coarse) feeds into the decision engine's spatiotemporal models to produce scenario simulations.</li>
+        <li><strong>Session Continuity:</strong> User ID links your decision history across sessions so you can review past simulations.</li>
+        <li><strong>Service Stability:</strong> Crash data and Device ID help us monitor system health and resolve technical issues.</li>
+        <li><strong>Subscription Fulfillment:</strong> Purchase history verifies your subscription tier and enables premium features.</li>
+      </ul>
+
+      <p>We do <strong>not</strong> use your data for advertising, profiling, cross-app tracking, or any purpose beyond delivering and improving the decision simulation service.</p>
+
+      <!-- Data Storage -->
+      <h2>3. Data Storage &amp; Infrastructure</h2>
+      <p>Axiom64 stores all user data on <strong>Supabase</strong>, a secure cloud database platform. Key security measures include:</p>
+      <ul>
+        <li>Encryption at rest (AES-256) and in transit (TLS 1.3)</li>
+        <li>Row-Level Security (RLS) policies ensuring data isolation between users</li>
+        <li>No storage of phone numbers, physical addresses, or contact lists</li>
+        <li>No storage of complete payment instrument details (payments are processed by Apple)</li>
+      </ul>
+
+      <!-- Data Sharing -->
+      <h2>4. Data Sharing &amp; Disclosure</h2>
+      <p>We do <strong>not</strong> sell, rent, or trade your data with third parties. Data may be shared only in the following limited circumstances:</p>
+      <ul>
+        <li><strong>Infrastructure Providers:</strong> Supabase (database hosting) — processes data solely to provide storage infrastructure.</li>
+        <li><strong>Legal Obligations:</strong> When required by applicable law, regulation, or valid legal process.</li>
+        <li><strong>Business Transfers:</strong> In connection with a merger, acquisition, or asset sale, subject to continuing privacy protections.</li>
+      </ul>
+
+      <!-- Data Retention -->
+      <h2>5. Data Retention</h2>
+      <p>We retain your data only while your account remains active. Upon account deletion:</p>
+      <ul>
+        <li>All User Content and session data is permanently deleted within 30 days.</li>
+        <li>Transaction records required for legal compliance are retained per applicable regulations.</li>
+        <li>Aggregated, anonymized metrics may be retained indefinitely for service improvement.</li>
+      </ul>
+
+      <!-- Your Rights -->
+      <h2>6. Your Rights &amp; Choices</h2>
+      <p>Depending on your jurisdiction, you may have the right to:</p>
+      <ul>
+        <li>Access your personal data stored in Axiom64</li>
+        <li>Request correction of inaccurate information</li>
+        <li>Request deletion of your account and associated data</li>
+        <li>Withdraw consent for location data collection (note: this will disable core spatiotemporal features)</li>
+        <li>Export your decision history and simulation results</li>
+      </ul>
+      <p>To exercise any of these rights, contact us at <a href="mailto:hexmind.dh@gmail.com">hexmind.dh@gmail.com</a>.</p>
+
+      <!-- Children -->
+      <h2>7. Children's Privacy</h2>
+      <p>Axiom64 is not intended for users under the age of 17. We do not knowingly collect data from children. If you believe a child has provided data to us, please contact us immediately.</p>
+
+      <!-- Changes -->
+      <h2>8. Changes to This Policy</h2>
+      <p>We may update this Privacy Policy periodically. Material changes will be communicated through the app or via email. Your continued use of Axiom64 after changes are posted constitutes acceptance.</p>
+
+      <!-- Contact -->
+      <h2>9. Contact</h2>
+      <p>For privacy-related inquiries, data access requests, or concerns:</p>
+      <p>
+        📧 <a href="mailto:hexmind.dh@gmail.com">hexmind.dh@gmail.com</a>
+      </p>
+    </div>
+
+    <footer class="footer">
+      <span>&copy; 2026 Axiom64</span>
+      <span>
+        <a href="../support/">Support</a>
+        <span class="sep">&nbsp;|&nbsp;</span>
+        <a href="../user-agreement/">Terms of Service</a>
+      </span>
+    </footer>
+
+  </div>
+</body>
+</html>

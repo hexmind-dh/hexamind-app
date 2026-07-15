@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terms of Service — Axiom64</title>
+  <meta name="description" content="Terms of Service for Axiom64 — Clinical-grade executive decision simulation platform.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-primary: #0a0c0f;
+      --bg-secondary: #111418;
+      --bg-card: #161a1f;
+      --border-subtle: #1e2329;
+      --border-active: #2a3039;
+      --text-primary: #e4e7eb;
+      --text-secondary: #8b919b;
+      --text-muted: #5a6069;
+      --accent-amber: #d4a843;
+      --accent-green: #3cb371;
+      --accent-red: #c94a4a;
+      --accent-blue: #5b9bd5;
+      --grid-color: rgba(255, 255, 255, 0.025);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.75;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+      background-size: 64px 64px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 48px 0 40px;
+      border-bottom: 1px solid var(--border-subtle);
+      position: relative;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: 0;
+      width: 120px; height: 1px;
+      background: var(--accent-amber);
+    }
+
+    .logo-wrap {
+      width: 64px; height: 64px;
+      border-radius: 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-active);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; overflow: hidden;
+    }
+
+    .logo-wrap img { width: 42px; height: 42px; object-fit: contain; }
+
+    .header-info h1 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 26px; font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+
+    .header-info .subtitle {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px; color: var(--accent-amber);
+      letter-spacing: 0.08em; text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .meta-bar {
+      display: flex; align-items: center; gap: 20px;
+      padding: 20px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; color: var(--text-muted);
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--border-subtle);
+      flex-wrap: wrap;
+    }
+
+    .content { padding: 48px 0 64px; }
+
+    .content h2 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px; font-weight: 500;
+      color: var(--text-primary);
+      margin: 40px 0 16px;
+      padding-top: 8px;
+      letter-spacing: -0.01em;
+    }
+
+    .content h2:first-child { margin-top: 0; }
+
+    .content p {
+      color: var(--text-secondary); font-size: 15px; margin-bottom: 14px;
+    }
+
+    .content ul {
+      list-style: none; padding-left: 0; margin-bottom: 20px;
+    }
+
+    .content ul li {
+      color: var(--text-secondary); font-size: 14px;
+      padding: 6px 0 6px 20px; position: relative;
+    }
+
+    .content ul li::before {
+      content: '—';
+      position: absolute; left: 0;
+      color: var(--accent-amber);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+    }
+
+    .warning-box {
+      background: rgba(201, 74, 74, 0.06);
+      border: 1px solid rgba(201, 74, 74, 0.2);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin: 24px 0;
+      font-size: 14px; color: var(--text-secondary);
+      line-height: 1.75;
+    }
+
+    .warning-box strong { color: var(--accent-red); }
+
+    .footer {
+      padding: 40px 0;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; color: var(--text-muted);
+      letter-spacing: 0.04em;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .footer a { color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+    .footer a:hover { color: var(--accent-amber); }
+
+    a { color: var(--accent-blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    @media (max-width: 500px) {
+      .header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <header class="header">
+      <div class="logo-wrap">
+        <img src="../icon.png" alt="Axiom64 Logo"
+             onerror="this.style.display='none';this.parentElement.innerHTML='<svg width=\'42\' height=\'42\' viewBox=\'0 0 48 48\' fill=\'none\'><rect width=\'48\' height=\'48\' rx=\'12\' fill=\'%23161a1f\'/><text x=\'24\' y=\'32\' text-anchor=\'middle\' font-family=\'JetBrains Mono,monospace\' font-size=\'20\' font-weight=\'600\' fill=\'%23d4a843\'>A6</text></svg>'">
+      </div>
+      <div class="header-info">
+        <h1>Terms of Service</h1>
+        <div class="subtitle">Axiom64</div>
+      </div>
+    </header>
+
+    <div class="meta-bar">
+      <span>Effective Date: July 15, 2026</span>
+    </div>
+
+    <div class="content">
+
+      <!-- Introduction -->
+      <h2>1. Introduction &amp; Acceptance of Terms</h2>
+      <p>Welcome to Axiom64, a clinical-grade decision simulation platform designed for executives, traders, and professionals operating in high-stakes environments.</p>
+      <p>By accessing or using Axiom64 ("the Service"), you agree to be bound by these Terms of Service ("Terms"). These Terms constitute a legally binding agreement between you and Axiom64. If you do not agree with any part of these Terms, please do not access or use the Service.</p>
+
+      <!-- Service Description -->
+      <h2>2. Description of Service</h2>
+      <p>Axiom64 provides a decision simulation platform that integrates spatiotemporal topology with behavioral finance and game theory to deliver cold, actionable strategic guidance. The Service may include:</p>
+      <ul>
+        <li>Scenario simulation and strategic analysis</li>
+        <li>Spatiotemporal computation and modeling</li>
+        <li>Risk assessment and decision support tools</li>
+        <li>Subscription-based access to premium analytical modules</li>
+      </ul>
+
+      <div class="warning-box">
+        <strong>⚠ Important Disclaimer:</strong> Axiom64 is a decision <strong>simulation</strong> tool — not a predictive oracle. It provides analytical frameworks and scenario projections based on deterministic spatiotemporal logic. All outputs should be independently evaluated before being applied to real-world decisions. Axiom64 does not constitute legal, financial, investment, medical, or other regulated professional advice.
+      </div>
+
+      <!-- User Accounts -->
+      <h2>3. User Accounts &amp; Registration</h2>
+      <p>Certain features require account creation. You agree to provide accurate and complete information during registration. You are responsible for maintaining the confidentiality of your account credentials and for all activity under your account. Notify us immediately at <a href="mailto:hexmind.dh@gmail.com">hexmind.dh@gmail.com</a> of any unauthorized access.</p>
+
+      <!-- Intellectual Property -->
+      <h2>4. Intellectual Property Rights</h2>
+      <p><strong>Your Content:</strong> You retain ownership of data, prompts, and materials you submit to Axiom64. By using the Service, you grant Axiom64 a limited license to process your content solely to provide and improve the Service.</p>
+      <p><strong>Our Technology:</strong> All rights in the Axiom64 platform — including algorithms, spatiotemporal models, software, interfaces, trademarks, and system architecture — are owned exclusively by Axiom64. Your use of the Service grants no ownership rights in the underlying technology.</p>
+
+      <!-- Prohibited Activities -->
+      <h2>5. Prohibited Activities</h2>
+      <p>You agree not to:</p>
+      <ul>
+        <li>Use Axiom64 for any illegal, fraudulent, or unauthorized purpose</li>
+        <li>Reverse engineer, decompile, or extract the platform's algorithms or models</li>
+        <li>Circumvent security measures, rate limits, or access controls</li>
+        <li>Resell, sublicense, or commercially exploit the Service without authorization</li>
+        <li>Use the Service to generate content that violates laws or third-party rights</li>
+        <li>Interfere with the security, availability, or performance of the Service</li>
+      </ul>
+
+      <!-- Pricing -->
+      <h2>6. Pricing &amp; Payments</h2>
+      <p>Fees and subscription plans are displayed at the time of purchase through the App Store. You agree to pay all charges associated with your selected plan. Prices may change with advance notice. Unless required by applicable law, payments are non-refundable.</p>
+      <p>To cancel a subscription, go to <strong>Settings → Apple ID → Subscriptions</strong> on your device, select Axiom64, and choose cancel. Access remains until the end of the current billing period.</p>
+
+      <!-- Service Availability -->
+      <h2>7. Service Availability</h2>
+      <p>Axiom64 strives for reliable operation but does not guarantee uninterrupted, error-free service. We may modify, suspend, or discontinue features for maintenance, upgrades, or business reasons. Core analytical modules function offline once initial configuration is complete.</p>
+
+      <!-- Termination -->
+      <h2>8. Termination</h2>
+      <p>We reserve the right to suspend or terminate access for violation of these Terms, misuse of the Service, or activities that create risk for Axiom64 or other users. You may discontinue use at any time.</p>
+
+      <!-- Disclaimer -->
+      <h2>9. Disclaimer of Warranties</h2>
+      <p>The Service is provided "as is" and "as available." To the maximum extent permitted by law, Axiom64 disclaims all warranties — express or implied — including accuracy, reliability, fitness for a particular purpose, and non-infringement. Decision simulation outputs are analytical tools, not guarantees of outcome.</p>
+
+      <!-- Limitation of Liability -->
+      <h2>10. Limitation of Liability</h2>
+      <p>To the fullest extent permitted by law, Axiom64 shall not be liable for indirect, incidental, special, consequential, or punitive damages arising from your use of the Service, reliance on simulation outputs, data loss, or service interruptions.</p>
+
+      <!-- Indemnification -->
+      <h2>11. Indemnification</h2>
+      <p>You agree to indemnify and hold harmless Axiom64 and its affiliates from claims, damages, and expenses arising from your use of the Service, your content, or your violation of these Terms.</p>
+
+      <!-- Governing Law -->
+      <h2>12. Governing Law &amp; Dispute Resolution</h2>
+      <p>These Terms are governed by applicable laws in the jurisdiction where Axiom64 operates, without regard to conflict of law principles. Disputes shall be resolved through applicable dispute resolution procedures.</p>
+
+      <!-- Changes -->
+      <h2>13. Changes to These Terms</h2>
+      <p>We may update these Terms at any time. Updated Terms become effective when posted. Continued use of Axiom64 after changes constitutes acceptance of the updated Terms.</p>
+
+      <!-- Privacy Reference -->
+      <h2>14. Privacy &amp; Data</h2>
+      <p>Your use of Axiom64 is also governed by our <a href="../privacy-policy/">Privacy Policy</a>, which explains how we collect, use, and protect your data. Axiom64 does not collect phone numbers, physical addresses, or other sensitive personal identifiers. All data is stored on Supabase infrastructure with encryption.</p>
+
+      <!-- Contact -->
+      <h2>15. Contact</h2>
+      <p>For questions regarding these Terms of Service:</p>
+      <p>📧 <a href="mailto:hexmind.dh@gmail.com">hexmind.dh@gmail.com</a></p>
+
+      <p style="margin-top: 32px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-muted);">
+        By using Axiom64, you acknowledge that you have read, understood, and agreed to these Terms of Service.
+      </p>
+    </div>
+
+    <footer class="footer">
+      <span>&copy; 2026 Axiom64</span>
+      <span>
+        <a href="../support/">Support</a>
+        &nbsp;|&nbsp;
+        <a href="../privacy-policy/">Privacy Policy</a>
+      </span>
+    </footer>
+
+  </div>
+</body>
+</html>
