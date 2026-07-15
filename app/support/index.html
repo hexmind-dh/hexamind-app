@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Axiom64 — Technical Support</title>
+  <meta name="description" content="Technical support and assistance for Axiom64 — the clinical-grade executive risk management system.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-primary: #0a0c0f;
+      --bg-secondary: #111418;
+      --bg-card: #161a1f;
+      --bg-card-hover: #1c2127;
+      --border-subtle: #1e2329;
+      --border-active: #2a3039;
+      --text-primary: #e4e7eb;
+      --text-secondary: #8b919b;
+      --text-muted: #5a6069;
+      --accent-amber: #d4a843;
+      --accent-green: #3cb371;
+      --accent-red: #c94a4a;
+      --accent-blue: #5b9bd5;
+      --grid-color: rgba(255, 255, 255, 0.025);
+      --glow-amber: rgba(212, 168, 67, 0.15);
+      --glow-green: rgba(60, 179, 113, 0.12);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ---- Grid Background ---- */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+      background-size: 64px 64px;
+      background-position: center center;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ---- Subtle ambient glow ---- */
+    body::after {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(ellipse at 30% 20%, var(--glow-amber) 0%, transparent 50%),
+                  radial-gradient(ellipse at 70% 80%, var(--glow-green) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.6;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 48px 0 40px;
+      border-bottom: 1px solid var(--border-subtle);
+      position: relative;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      width: 120px;
+      height: 1px;
+      background: var(--accent-amber);
+    }
+
+    .logo-wrap {
+      flex-shrink: 0;
+      width: 72px;
+      height: 72px;
+      border-radius: 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-active);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      box-shadow: 0 0 32px var(--glow-amber);
+      position: relative;
+    }
+
+    .logo-wrap img {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+    }
+
+    .header-info h1 {
+      font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+
+    .header-info .subtitle {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--accent-amber);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 6px;
+    }
+
+    .header-info .tagline {
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      font-weight: 400;
+    }
+
+    /* ---- Status Bar ---- */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 16px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      box-shadow: 0 0 8px var(--accent-green);
+      margin-right: 6px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .status-divider {
+      width: 1px;
+      height: 12px;
+      background: var(--border-active);
+    }
+
+    /* ---- Section ---- */
+    .section {
+      padding: 48px 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .section:last-child {
+      border-bottom: none;
+    }
+
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-label::before {
+      content: '';
+      width: 24px;
+      height: 1px;
+      background: var(--accent-amber);
+      opacity: 0.6;
+    }
+
+    .section h2 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 20px;
+      letter-spacing: -0.01em;
+    }
+
+    .section p {
+      color: var(--text-secondary);
+      font-size: 15px;
+      line-height: 1.75;
+      margin-bottom: 16px;
+    }
+
+    /* ---- FAQ ---- */
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .faq-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      overflow: hidden;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .faq-item:hover {
+      border-color: var(--border-active);
+      background: var(--bg-card-hover);
+    }
+
+    .faq-item summary {
+      padding: 20px 24px;
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      list-style: none;
+      user-select: none;
+    }
+
+    .faq-item summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .faq-item summary::after {
+      content: '+';
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      color: var(--accent-amber);
+      font-weight: 400;
+      transition: transform 0.25s ease;
+      flex-shrink: 0;
+    }
+
+    .faq-item[open] summary::after {
+      transform: rotate(45deg);
+    }
+
+    .faq-item .faq-body {
+      padding: 0 24px 20px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.75;
+    }
+
+    /* ---- Contact Card ---- */
+    .contact-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      transition: border-color 0.2s ease;
+    }
+
+    .contact-card:hover {
+      border-color: var(--border-active);
+    }
+
+    .contact-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .contact-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-active);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .contact-icon svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--accent-amber);
+    }
+
+    .contact-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .contact-value {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .contact-value a {
+      color: var(--accent-blue);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s ease;
+    }
+
+    .contact-value a:hover {
+      border-color: var(--accent-blue);
+    }
+
+    .response-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--accent-green);
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      padding: 8px 12px;
+      background: rgba(60, 179, 113, 0.06);
+      border-radius: 6px;
+      width: fit-content;
+    }
+
+    .response-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-green);
+    }
+
+    /* ---- Form ---- */
+    .support-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 600px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+      }
+      .header-info h1 {
+        font-size: 22px;
+      }
+      .status-bar {
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      padding: 12px 16px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      border-color: var(--accent-amber);
+      box-shadow: 0 0 0 3px var(--glow-amber);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .btn-submit {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 14px 28px;
+      background: var(--accent-amber);
+      color: var(--bg-primary);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+      align-self: flex-start;
+      margin-top: 4px;
+    }
+
+    .btn-submit:hover {
+      background: #e0b854;
+      box-shadow: 0 4px 20px var(--glow-amber);
+      transform: translateY(-1px);
+    }
+
+    .btn-submit:active {
+      transform: translateY(0);
+    }
+
+    /* ---- Footer ---- */
+    .footer {
+      padding: 40px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      border-top: 1px solid var(--border-subtle);
+      margin-top: 16px;
+    }
+
+    .footer-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .footer a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .footer a:hover {
+      color: var(--accent-amber);
+    }
+
+    /* ---- Success State ---- */
+    .form-success {
+      display: none;
+      padding: 48px 32px;
+      text-align: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+    }
+
+    .form-success.visible {
+      display: block;
+    }
+
+    .form-success .check-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(60, 179, 113, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+
+    .form-success h3 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      color: var(--accent-green);
+      margin-bottom: 8px;
+    }
+
+    .form-success p {
+      color: var(--text-secondary);
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    /* ---- Divider accent ---- */
+    .section-accent {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 8px 0 24px;
+    }
+
+    .section-accent span {
+      width: 40px;
+      height: 2px;
+      background: var(--accent-amber);
+      opacity: 0.5;
+    }
+
+    .section-accent span:last-child {
+      flex: 1;
+      opacity: 0.15;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="logo-wrap">
+        <img src="icon.png" alt="Axiom64 Logo" onerror="this.style.display='none';this.parentElement.innerHTML='<svg width=\'48\' height=\'48\' viewBox=\'0 0 48 48\' fill=\'none\'><rect width=\'48\' height=\'48\' rx=\'12\' fill=\'%23161a1f\'/><text x=\'24\' y=\'32\' text-anchor=\'middle\' font-family=\'JetBrains Mono,monospace\' font-size=\'22\' font-weight=\'600\' fill=\'%23d4a843\'>A6</text></svg>'">
+      </div>
+      <div class="header-info">
+        <h1>Axiom64</h1>
+        <div class="subtitle">Technical Support Center</div>
+        <div class="tagline">Clinical-grade executive risk management system</div>
+      </div>
+    </header>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span><span class="status-dot"></span>Support Online</span>
+      <span class="status-divider"></span>
+      <span>Response Time: &lt; 24h</span>
+      <span class="status-divider"></span>
+      <span>v1.0 — Production</span>
+    </div>
+
+    <!-- FAQ Section -->
+    <section class="section" id="faq">
+      <div class="section-label">Frequently Asked Questions</div>
+      <h2>Common Inquiries</h2>
+
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>How do I get started with Axiom64?</summary>
+          <div class="faq-body">
+            Download Axiom64 from the App Store. Upon first launch, the system will guide you through a brief calibration sequence to establish your baseline decision parameters. No account creation is required to begin using core risk assessment tools.
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>What data does Axiom64 collect?</summary>
+          <div class="faq-body">
+            Axiom64 is designed with a privacy-first architecture. All decision models and risk computations run locally on your device. We collect no personal identifiers, financial data, or behavioral analytics. Optional anonymous telemetry may be enabled to improve algorithmic precision — this can be disabled at any time in Settings.
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>Is my business data secure?</summary>
+          <div class="faq-body">
+            Yes. Axiom64 employs on-device processing by default. No data leaves your device unless you explicitly enable optional cloud backup features. All local storage is encrypted using device-level security (Secure Enclave on iOS). We recommend enabling device passcode and biometric authentication for additional protection.
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>How do I restore my subscription or purchases?</summary>
+          <div class="faq-body">
+            Open Axiom64, navigate to <strong>Settings → Account → Restore Purchases</strong>. The system will validate your App Store receipts and restore all entitlements. If the issue persists, please contact us via the form below with your App Store receipt for manual verification.
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>The app is not responding or crashes on launch</summary>
+          <div class="faq-body">
+            Please try the following in order: (1) Force-quit the app and relaunch. (2) Restart your device. (3) Ensure your iOS version is 17.0 or later. (4) Delete and reinstall Axiom64 from the App Store. If the issue persists, contact us below with your device model, iOS version, and a description of the steps leading to the crash.
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>How can I request a feature or report a bug?</summary>
+          <div class="faq-body">
+            We welcome your feedback. Use the contact form below or email us directly at <strong>hexmind.dh@gmail.com</strong>. Please include as much detail as possible — screenshots, device information, and steps to reproduce are especially helpful.
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="section" id="contact">
+      <div class="section-label">Get In Touch</div>
+      <h2>Contact Technical Support</h2>
+
+      <div class="contact-card" style="margin-bottom: 32px;">
+        <div class="contact-row">
+          <div class="contact-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="4" width="20" height="16" rx="2"/>
+              <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+            </svg>
+          </div>
+          <div>
+            <div class="contact-label">Email Support</div>
+            <div class="contact-value">
+              <a href="mailto:hexmind.dh@gmail.com">hexmind.dh@gmail.com</a>
+            </div>
+          </div>
+        </div>
+        <div class="response-time">
+          <span class="response-dot"></span>
+          Typical response within 24 hours, Monday–Friday
+        </div>
+      </div>
+
+      <!-- Support Form -->
+      <form class="support-form" id="supportForm" action="https://formspree.io/f/hexmind.dh@gmail.com" method="POST">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" name="name" placeholder="John Smith" required>
+          </div>
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" placeholder="john@example.com" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="topic">Topic</label>
+          <select id="topic" name="topic" required>
+            <option value="" disabled selected>Select a topic…</option>
+            <option value="bug">Bug Report</option>
+            <option value="feature">Feature Request</option>
+            <option value="account">Account &amp; Billing</option>
+            <option value="crash">App Crash / Stability</option>
+            <option value="data">Data &amp; Privacy</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="message">Description</label>
+          <textarea id="message" name="message" placeholder="Please describe your issue in detail — include device model, iOS version, and steps to reproduce if applicable." required></textarea>
+        </div>
+        <button type="submit" class="btn-submit">Submit Request</button>
+      </form>
+
+      <!-- Success Message -->
+      <div class="form-success" id="formSuccess">
+        <div class="check-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3cb371" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <h3>Request Received</h3>
+        <p>Your support request has been logged. Our team will respond to <strong>hexmind.dh@gmail.com</strong> within 24 business hours.</p>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <span>&copy; 2025 Axiom64. All rights reserved.</span>
+      <div class="footer-right">
+        <a href="mailto:hexmind.dh@gmail.com">hexmind.dh@gmail.com</a>
+        <span>|</span>
+        <a href="#faq">FAQ</a>
+        <span>|</span>
+        <a href="#contact">Contact</a>
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    const form = document.getElementById('supportForm');
+    const success = document.getElementById('formSuccess');
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+
+      fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: { 'Accept': 'application/json' }
+      })
+      .then(response => {
+        if (response.ok) {
+          form.style.display = 'none';
+          success.classList.add('visible');
+        } else {
+          return response.json().then(data => {
+            throw new Error(data.error || 'Submission failed');
+          });
+        }
+      })
+      .catch(() => {
+        // Fallback: open mailto as backup
+        const name = encodeURIComponent(formData.get('name'));
+        const email = encodeURIComponent(formData.get('email'));
+        const topic = encodeURIComponent(formData.get('topic'));
+        const message = encodeURIComponent(formData.get('message'));
+        const mailto = `mailto:hexmind.dh@gmail.com?subject=${topic}%20-%20${name}&body=From:%20${email}%0A%0A${message}`;
+        window.location.href = mailto;
+
+        form.style.display = 'none';
+        success.classList.add('visible');
+      });
+    });
+  </script>
+</body>
+</html>
