@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Axiom64 — Wall Street Clinical-Grade Executive Risk Management System</title>
+  <meta name="description" content="Strip away emotion, calculate causation. Axiom64 is a secularized strategic advisor built for business leaders and elite dealmakers. Download for iOS & Android.">
+  <meta property="og:title" content="Axiom64 — Wall St Risk System">
+  <meta property="og:description" content="Strip away emotion, calculate causation. Secularized strategic advisor for business leaders.">
+  <meta property="og:image" content="icon.png">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/png" href="icon.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Sans+Thai:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-primary: #0a0c0f;
+      --bg-secondary: #111418;
+      --bg-card: #161a1f;
+      --bg-card-hover: #1c2127;
+      --border-subtle: #1e2329;
+      --border-active: #2a3039;
+      --text-primary: #e4e7eb;
+      --text-secondary: #8b919b;
+      --text-muted: #5a6069;
+      --accent: #d4a843;
+      --accent-hover: #e0b854;
+      --accent-green: #3cb371;
+      --accent-blue: #5b9bd5;
+      --grid-color: rgba(255,255,255,0.025);
+      --glow: rgba(212,168,67,0.15);
+      --glow-green: rgba(60,179,113,0.12);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{
+      font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Noto Sans SC',sans-serif;
+      background:var(--bg-primary);color:var(--text-primary);
+      -webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden;
+    }
+    body::before{
+      content:'';position:fixed;inset:0;
+      background-image:linear-gradient(var(--grid-color) 1px,transparent 1px),linear-gradient(90deg,var(--grid-color) 1px,transparent 1px);
+      background-size:64px 64px;pointer-events:none;z-index:0;
+    }
+    body::after{
+      content:'';position:fixed;top:-50%;left:-50%;width:200%;height:200%;
+      background:radial-gradient(ellipse at 15% 10%,var(--glow) 0%,transparent 50%),radial-gradient(ellipse at 85% 90%,var(--glow-green) 0%,transparent 45%);
+      pointer-events:none;z-index:0;opacity:.5;
+    }
+    a{color:var(--accent-blue);text-decoration:none;transition:color .2s}
+    a:hover{color:var(--accent)}
+
+    /* ── NAV ── */
+    .nav{
+      position:relative;z-index:2;
+      display:flex;align-items:center;justify-content:space-between;
+      max-width:1200px;margin:0 auto;padding:20px 24px;
+    }
+    .nav-brand{display:flex;align-items:center;gap:12px;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;letter-spacing:.04em;color:var(--text-primary)}
+    .nav-brand img{width:36px;height:36px;border-radius:10px}
+    .nav-right{display:flex;align-items:center;gap:16px}
+    .nav-links{display:flex;align-items:center;gap:24px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.06em}
+    .nav-links a{color:var(--text-muted);text-transform:uppercase}
+    .nav-links a:hover{color:var(--accent)}
+
+    /* ── Lang Switcher ── */
+    .lang-switch{position:relative;font-family:'JetBrains Mono',monospace;font-size:12px}
+    .lang-btn{
+      display:flex;align-items:center;gap:8px;
+      padding:8px 14px;background:var(--bg-card);border:1px solid var(--border-active);
+      border-radius:8px;color:var(--text-secondary);cursor:pointer;
+      transition:all .2s;white-space:nowrap;
+    }
+    .lang-btn:hover{border-color:var(--accent);color:var(--accent)}
+    .lang-btn svg{width:14px;height:14px}
+    .lang-dropdown{
+      display:none;position:absolute;right:0;top:44px;
+      background:var(--bg-card);border:1px solid var(--border-active);
+      border-radius:8px;min-width:200px;max-height:360px;overflow-y:auto;
+      box-shadow:0 16px 48px rgba(0,0,0,.6);z-index:10;
+    }
+    .lang-dropdown.show{display:block}
+    .lang-option{
+      display:flex;align-items:center;gap:10px;
+      padding:10px 16px;cursor:pointer;color:var(--text-secondary);
+      transition:all .15s;font-size:12px;
+    }
+    .lang-option:hover,.lang-option.active{background:rgba(212,168,67,.08);color:var(--accent)}
+    .lang-option .flag{font-size:16px}
+
+    /* ── HERO ── */
+    .hero{position:relative;z-index:1;text-align:center;padding:40px 24px 60px}
+    .container{max-width:1100px;margin:0 auto}
+    .hero-badge{
+      display:inline-flex;align-items:center;gap:8px;
+      font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
+      letter-spacing:.1em;text-transform:uppercase;color:var(--accent);
+      border:1px solid rgba(212,168,67,.25);border-radius:50px;
+      padding:6px 16px;margin-bottom:24px;background:rgba(212,168,67,.06);
+    }
+    .hero-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 2s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    .hero h1{
+      font-family:'JetBrains Mono',monospace;
+      font-size:clamp(32px,6vw,56px);font-weight:600;
+      letter-spacing:-.03em;line-height:1.15;color:var(--text-primary);
+      max-width:800px;margin:0 auto 20px;
+    }
+    .hero h1 .hl{background:linear-gradient(135deg,var(--accent) 0%,#e8c467 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .hero-tagline{
+      font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:400;
+      color:var(--text-secondary);letter-spacing:.06em;max-width:560px;
+      margin:0 auto 36px;line-height:1.7;
+    }
+    .hero-tagline em{color:var(--accent);font-style:normal}
+
+    /* ── Buttons ── */
+    .hero-cta{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;margin-bottom:48px}
+    .btn{
+      display:inline-flex;align-items:center;gap:10px;
+      font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;
+      letter-spacing:.06em;padding:16px 36px;border-radius:10px;cursor:pointer;
+      text-decoration:none;transition:all .2s ease;
+    }
+    .btn-primary{background:var(--accent);color:var(--bg-primary);border:none;box-shadow:0 4px 24px rgba(212,168,67,.2)}
+    .btn-primary:hover{background:var(--accent-hover);transform:translateY(-2px);box-shadow:0 8px 32px rgba(212,168,67,.35);color:var(--bg-primary)}
+    .btn-outline{background:transparent;color:var(--text-primary);border:1px solid var(--border-active)}
+    .btn-outline:hover{border-color:var(--accent);background:rgba(212,168,67,.06);color:var(--accent)}
+    .btn-dark{background:var(--bg-card);color:var(--text-primary);border:1px solid var(--border-subtle)}
+    .btn-dark:hover{border-color:var(--border-active);background:var(--bg-card-hover)}
+    .btn svg{width:20px;height:20px;flex-shrink:0}
+
+    .hero-visual{position:relative;max-width:900px;margin:0 auto;padding:4px;background:linear-gradient(135deg,rgba(212,168,67,.12),rgba(42,48,57,.4));border-radius:16px}
+    .hero-visual img{width:100%;height:auto;border-radius:13px;display:block}
+
+    /* ── SECTION ── */
+    .section{position:relative;z-index:1;padding:96px 24px}
+    .section-alt{background:var(--bg-secondary);border-top:1px solid var(--border-subtle);border-bottom:1px solid var(--border-subtle)}
+    .sec-tag{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px;text-align:center}
+    .sec-title{font-family:'JetBrains Mono',monospace;font-size:clamp(22px,4vw,32px);font-weight:500;letter-spacing:-.02em;color:var(--text-primary);text-align:center;margin-bottom:12px}
+    .sec-desc{color:var(--text-secondary);font-size:15px;max-width:480px;margin:0 auto 48px;text-align:center;line-height:1.65}
+
+    /* ── FEATURES ── */
+    .features-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+    @media(max-width:860px){.features-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:480px){.features-grid{grid-template-columns:1fr}}
+    .feat-card{text-align:center;padding:28px 16px;background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:10px;transition:border-color .2s}
+    .feat-card:hover{border-color:var(--border-active)}
+    .feat-icon{width:48px;height:48px;border-radius:12px;background:rgba(212,168,67,.08);border:1px solid rgba(212,168,67,.18);display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+    .feat-icon svg{width:24px;height:24px;stroke:var(--accent)}
+    .feat-card h3{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:500;color:var(--text-primary);letter-spacing:.03em;margin-bottom:8px}
+    .feat-card p{font-size:13px;color:var(--text-secondary);line-height:1.65}
+
+    /* ── WARNING ── */
+    .warning-box{
+      background:rgba(212,168,67,.04);border:1px solid rgba(212,168,67,.15);
+      border-radius:10px;padding:24px 28px;margin:48px auto 0;max-width:720px;
+      display:flex;align-items:flex-start;gap:16px;
+    }
+    .warning-box .wi{flex-shrink:0;width:36px;height:36px;border-radius:50%;background:rgba(212,168,67,.12);display:flex;align-items:center;justify-content:center}
+    .warning-box .wi svg{width:18px;height:18px;stroke:var(--accent)}
+    .warning-box .wt{font-size:13px;color:var(--text-secondary);line-height:1.7}
+    .warning-box .wt strong{color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:500}
+
+    /* ── SCREENSHOTS ── */
+    .shot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+    @media(max-width:860px){.shot-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:520px){.shot-grid{grid-template-columns:1fr}}
+    .shot-item{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:12px;overflow:hidden;transition:all .3s ease}
+    .shot-item:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.4)}
+    .shot-item img{width:100%;height:auto;display:block;border-bottom:1px solid var(--border-subtle)}
+    .shot-label{padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;color:var(--text-muted);text-transform:uppercase;text-align:center}
+
+    /* ── DOWNLOAD ── */
+    .dl-section{text-align:center}
+    .dl-options{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+    .dl-note{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-muted);letter-spacing:.05em;margin-top:20px;line-height:1.7}
+
+    /* ── FOOTER ── */
+    .footer{position:relative;z-index:1;border-top:1px solid var(--border-subtle);padding:32px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-muted);letter-spacing:.04em;max-width:1100px;margin:0 auto}
+    .footer a{color:var(--text-muted)}
+    .footer a:hover{color:var(--accent)}
+    .footer-links{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+    .footer-links span{color:var(--border-active)}
+
+    @media(max-width:640px){
+      .nav-links{display:none}
+      .hero{padding:20px 16px 48px}
+      .hero-cta{flex-direction:column}
+      .btn{width:100%;justify-content:center}
+      .lang-btn span{display:none}
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand"><img src="icon.png" alt="Axiom64">Axiom64</div>
+  <div class="nav-right">
+    <div class="nav-links"><a href="#features" data-i18n="nav_features">Features</a><a href="#screenshots" data-i18n="nav_screenshots">Screenshots</a><a href="#download" data-i18n="nav_download">Download</a><a href="/app/support/" data-i18n="nav_support">Support</a></div>
+    <div class="lang-switch">
+      <button class="lang-btn" onclick="document.getElementById('lang-drop').classList.toggle('show')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/><path d="M12 2a15.3 15.3 0 0 0-4 10 15.3 15.3 0 0 0 4 10"/></svg><span id="lang-label">English</span></button>
+      <div class="lang-dropdown" id="lang-drop"></div>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero container" id="hero">
+  <div class="hero-badge"><span class="dot"></span><span data-i18n="hero_badge">Clinical-Grade Strategic Advisory</span></div>
+  <h1><span data-i18n="hero_line1">Strip away emotion,</span><br><span class="hl" data-i18n="hero_line2">calculate causation</span></h1>
+  <p class="hero-tagline" data-i18n="hero_tagline">A <em>secularized strategic advisor</em> built for business leaders and elite dealmakers. No comfort — only breakthrough truth.</p>
+  <div class="hero-cta">
+    <a href="https://apps.apple.com/app/axiom64/idXXXXXXXXX" class="btn btn-dark" target="_blank"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>App Store</a>
+    <a href="https://play.google.com/store/apps/details?id=com.simonchen.hexamind" class="btn btn-primary" target="_blank"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span data-i18n="btn_googleplay">Google Play</span></a>
+    <a href="/app/landing/axiom64.apk" class="btn btn-outline" download><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span data-i18n="btn_apk">Download APK</span></a>
+  </div>
+  <div class="hero-visual"><img src="images/hero-bg.png" alt="Axiom64 Dashboard"></div>
+</section>
+
+<!-- FEATURES -->
+<section class="section-alt" id="features">
+  <div class="section container" style="padding:96px 24px!important;border:none">
+    <div class="sec-tag" data-i18n="feat_tag">Core Capabilities</div>
+    <h2 class="sec-title" data-i18n="feat_title">Clinical-Grade Scenarios</h2>
+    <p class="sec-desc" data-i18n="feat_desc">Stripping away all emotional comfort — precision tools for high-stakes decision-making</p>
+    <div class="features-grid">
+      <div class="feat-card"><div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div><h3 data-i18n="feat1_title">M&A & Financing</h3><p data-i18n="feat1_desc">Assess capital positioning, calculate shareholder equity thresholds, lock in optimal acquisition windows.</p></div>
+      <div class="feat-card"><div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/><path d="M12 2a15.3 15.3 0 0 0-4 10 15.3 15.3 0 0 0 4 10"/></svg></div><h3 data-i18n="feat2_title">Cross-Border Negotiations</h3><p data-i18n="feat2_desc">Precisely capture counterparty bottom lines and golden windows in transnational projects.</p></div>
+      <div class="feat-card"><div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><h3 data-i18n="feat3_title">Executive & Budget</h3><p data-i18n="feat3_desc">Control the offense-defense rhythm when negotiating personnel spending and finalizing budgets.</p></div>
+      <div class="feat-card"><div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg></div><h3 data-i18n="feat4_title">Core Interest Defense</h3><p data-i18n="feat4_desc">Emotion-free bottom-line warnings in negotiations involving business reputation or equity commitments.</p></div>
+    </div>
+    <div class="warning-box">
+      <div class="wi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <div class="wt" data-i18n="warn_html"></div>
+    </div>
+  </div>
+</section>
+
+<!-- SCREENSHOTS -->
+<section class="section container" id="screenshots">
+  <div class="sec-tag" data-i18n="shot_tag">Interface Preview</div>
+  <h2 class="sec-title" data-i18n="shot_title">System Interface</h2>
+  <p class="sec-desc" data-i18n="shot_desc">Spacetime topology × behavioral finance × game theory fusion dashboard</p>
+  <div class="shot-grid">
+    <div class="shot-item"><img src="images/首页.png" alt="Dashboard" loading="lazy"><div class="shot-label" data-i18n="shot1">Spacetime Dashboard</div></div>
+    <div class="shot-item"><img src="images/推演.png" alt="Simulation" loading="lazy"><div class="shot-label" data-i18n="shot2">Advanced Simulation</div></div>
+    <div class="shot-item"><img src="images/决策咨询.png" alt="Advisory" loading="lazy"><div class="shot-label" data-i18n="shot3">Decision Advisory</div></div>
+    <div class="shot-item"><img src="images/决策模拟.png" alt="Decision Sim" loading="lazy"><div class="shot-label" data-i18n="shot4">Decision Sandbox</div></div>
+    <div class="shot-item"><img src="images/推演历史.png" alt="History" loading="lazy"><div class="shot-label" data-i18n="shot5">Simulation History</div></div>
+    <div class="shot-item"><img src="images/多语言.png" alt="Multilingual" loading="lazy"><div class="shot-label" data-i18n="shot6">Multilingual Support</div></div>
+  </div>
+</section>
+
+<!-- DOWNLOAD -->
+<section class="section-alt" id="download">
+  <div class="section container dl-section" style="padding:96px 24px!important;border:none">
+    <div class="sec-tag" data-i18n="dl_tag">Get Started</div>
+    <h2 class="sec-title" data-i18n="dl_title">Ready to face the truth?</h2>
+    <p class="sec-desc" data-i18n="dl_desc">Download Axiom64 and gain unemotional strategic assessment. Available worldwide.</p>
+    <div class="dl-options">
+      <a href="https://apps.apple.com/app/axiom64/idXXXXXXXXX" class="btn btn-dark" target="_blank"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>App Store</a>
+      <a href="https://play.google.com/store/apps/details?id=com.simonchen.hexamind" class="btn btn-primary" target="_blank"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span data-i18n="btn_googleplay">Google Play</span></a>
+      <a href="/app/landing/axiom64.apk" class="btn btn-outline" download data-i18n="btn_apk">Download APK</a>
+    </div>
+    <div class="dl-note" data-i18n="dl_note">v1.0.5 · iOS & Android · Worldwide</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <span>&copy; 2026 Axiom64</span>
+  <div class="footer-links"><a href="/app/privacy-policy/" data-i18n="footer_privacy">Privacy</a><span>|</span><a href="/app/user-agreement/" data-i18n="footer_terms">Terms</a><span>|</span><a href="/app/support/" data-i18n="footer_support">Support</a><span>|</span><a href="mailto:hexmind.dh@gmail.com">Contact</a></div>
+</footer>
+
+<!-- LANGUAGES + i18n -->
+<script>
+// ── Language definitions ──
+const LANGS = [
+  {code:'en',   name:'English',          flag:'🇺🇸'},
+  {code:'es',   name:'Español',          flag:'🇲🇽'},
+  {code:'ko',   name:'한국어',           flag:'🇰🇷'},
+  {code:'ms',   name:'Bahasa Melayu',    flag:'🇲🇾'},
+  {code:'ja',   name:'日本語',           flag:'🇯🇵'},
+  {code:'zh-TW',name:'繁體中文',         flag:'🇨🇳'},
+  {code:'th',   name:'ไทย',              flag:'🇹🇭'},
+  {code:'zh-CN',name:'简体中文',         flag:'🇨🇳'},
+  {code:'id',   name:'Bahasa Indonesia', flag:'🇮🇩'},
+];
+
+// ── Translations ──
+const I18N = {
+  nav_features:   {en:'Features',es:'Funciones',ko:'기능',ms:'Ciri-ciri',ja:'機能',zhTW:'功能',th:'คุณสมบัติ',zhCN:'功能',id:'Fitur'},
+  nav_screenshots:{en:'Screenshots',es:'Capturas',ko:'스크린샷',ms:'Tangkapan',ja:'スクリーンショット',zhTW:'截圖',th:'ภาพหน้าจอ',zhCN:'截图',id:'Tangkapan'},
+  nav_download:   {en:'Download',es:'Descargar',ko:'다운로드',ms:'Muat Turun',ja:'ダウンロード',zhTW:'下載',th:'ดาวน์โหลด',zhCN:'下载',id:'Unduh'},
+  nav_support:    {en:'Support',es:'Soporte',ko:'지원',ms:'Sokongan',ja:'サポート',zhTW:'支援',th:'สนับสนุน',zhCN:'支持',id:'Dukungan'},
+
+  hero_badge:  {en:'Clinical-Grade Strategic Advisory',es:'Asesoría Estratégica de Grado Clínico',ko:'임상급 전략 자문',ms:'Penasihat Strategik Gred Klinikal',ja:'クリニカルグレード戦略顧問',zhTW:'臨床級戰略顧問',th:'ที่ปรึกษากลยุทธ์ระดับคลินิก',zhCN:'临床级战略顾问',id:'Penasihat Strategis Tingkat Klinis'},
+  hero_line1:  {en:'Strip away emotion,',es:'Elimina la emoción,',ko:'감정을 배제하고,',ms:'Singkirkan emosi,',ja:'感情を排除し、',zhTW:'剝離情緒，',th:'ขจัดอารมณ์',zhCN:'剥离情绪，',id:'Singkirkan emosi,'},
+  hero_line2:  {en:'calculate causation',es:'calcula la causalidad',ko:'인과를 계산한다',ms:'kira sebab-akibat',ja:'因果を計算する',zhTW:'計算因果',th:'คำนวณเหตุและผล',zhCN:'计算因果',id:'hitung sebab-akibat'},
+  hero_tagline:{en:'A <em>secularized strategic advisor</em> built for business leaders and elite dealmakers. No comfort — only breakthrough truth.',es:'Un <em>asesor estratégico secularizado</em> para líderes empresariales y negociadores de élite. Sin consuelo, solo la verdad.',ko:'비즈니스 리더와 최고 수준의 딜메이커를 위한 <em>탈종교적 전략 참모</em>입니다. 위로가 아닌, 돌파구의 진실만을 제공합니다.',ms:'<em>Penasihat strategik sekular</em> dibina untuk pemimpin perniagaan dan perunding elit. Tiada keselesaan — hanya kebenaran.',ja:'ビジネスリーダーとエリートディールメーカーのための<em>脱宗教化戦略参謀</em>。慰めではなく、突破の真実のみを。',zhTW:'專為商業領袖與頂尖操盤手打造的<em>去宗教化戰略參謀</em>。不提供撫慰，只輸出破局真相。',th:'<em>ที่ปรึกษากลยุทธ์ไร้ศาสนา</em>สำหรับผู้นำธุรกิจและนักเจรจาชั้นยอด ไม่มีการปลอบโยน — มีเพียงความจริง',zhCN:'专为商业领袖与顶尖操盘手打造的<em>去宗教化战略参谋</em>。不提供抚慰，只输出破局真相。',id:'<em>Penasihat strategis sekuler</em> untuk para pemimpin bisnis dan negosiator elit. Tanpa hiburan — hanya kebenaran.'},
+
+  btn_googleplay:{en:'Google Play',es:'Google Play',ko:'Google Play',ms:'Google Play',ja:'Google Play',zhTW:'Google Play',th:'Google Play',zhCN:'Google Play',id:'Google Play'},
+  btn_apk:       {en:'Download APK',es:'Descargar APK',ko:'APK 다운로드',ms:'Muat Turun APK',ja:'APKをダウンロード',zhTW:'下載 APK',th:'ดาวน์โหลด APK',zhCN:'下载 APK',id:'Unduh APK'},
+
+  feat_tag:  {en:'Core Capabilities',es:'Capacidades Clave',ko:'핵심 역량',ms:'Keupayaan Teras',ja:'コア機能',zhTW:'核心能力',th:'ความสามารถหลัก',zhCN:'核心能力',id:'Kemampuan Inti'},
+  feat_title:{en:'Clinical-Grade Scenarios',es:'Escenarios de Grado Clínico',ko:'임상급 시나리오',ms:'Senario Gred Klinikal',ja:'臨床グレードのシナリオ',zhTW:'臨床級應用場景',th:'สถานการณ์ระดับคลินิก',zhCN:'临床级应用场景',id:'Skenario Tingkat Klinis'},
+  feat_desc: {en:'Stripping away all emotional comfort — precision tools for high-stakes decision-making',es:'Eliminando todo consuelo emocional — herramientas de precisión para la toma de decisiones de alto riesgo',ko:'모든 감정적 위로를 배제한 — 고위험 의사결정을 위한 정밀 도구',ms:'Menghapuskan semua keselesaan emosi — alat ketepatan untuk pembuatan keputusan berisiko tinggi',ja:'すべての感情的慰めを排除した — 高リスク意思決定のための精密ツール',zhTW:'剝離一切感性慰藉，直擊核心利益的高管制勝工具',th:'ขจัดการปลอบประโลมทางอารมณ์ทั้งหมด — เครื่องมือแม่นยำสำหรับการตัดสินใจความเสี่ยงสูง',zhCN:'剥离一切感性慰藉，直击核心利益的高管制胜工具',id:'Menghilangkan semua hiburan emosional — alat presisi untuk pengambilan keputusan berisiko tinggi'},
+
+  feat1_title:{en:'M&A & Financing',es:'Fusiones y Financiación',ko:'M&A 및 자금조달',ms:'M&A & Pembiayaan',ja:'M&Aと資金調達',zhTW:'併購與融資',th:'การควบรวมและระดมทุน',zhCN:'并购与融资',id:'Akuisisi & Pendanaan'},
+  feat1_desc: {en:'Assess capital positioning, calculate shareholder equity thresholds, lock in optimal acquisition windows.',es:'Evalúe el posicionamiento de capital, calcule los umbrales de participación accionaria, fije ventanas óptimas de adquisición.',ko:'자본 포지셔닝을 평가하고, 주주 지분 방어선을 계산하며, 최적의 인수 시간대를 확보합니다.',ms:'Menilai kedudukan modal, mengira ambang ekuiti pemegang saham, mengunci tetingkap pemerolehan optimum.',ja:'資本ポジショニングを評価し、株主比率の防衛ラインを算出し、最適な買収ウィンドウを確定します。',zhTW:'評估資金盤口、測算股東比例防線、鎖定重資產收購的絕佳時間窗口。',th:'ประเมินตำแหน่งเงินทุน คำนวณเส้นป้องกันผู้ถือหุ้น ล็อกช่วงเวลาที่เหมาะสมสำหรับการซื้อกิจการ',zhCN:'评估资金盘口、测算股东比例防线、锁定重资产收购的绝佳时间窗口。',id:'Menilai posisi modal, menghitung ambang ekuitas pemegang saham, mengunci jendela akuisisi optimal.'},
+  feat2_title:{en:'Cross-Border Negotiations',es:'Negociaciones Transfronterizas',ko:'국제 협상',ms:'Rundingan Rentas Sempadan',ja:'国際交渉',zhTW:'跨國政商談判',th:'การเจรจาข้ามพรมแดน',zhCN:'跨国政商谈判',id:'Negosiasi Lintas Batas'},
+  feat2_desc: {en:'Precisely capture counterparty bottom lines and golden windows in transnational projects.',es:'Capture con precisión las líneas rojas de la contraparte y las ventanas doradas en proyectos transnacionales.',ko:'국제 프로젝트에서 상대방의 마지노선과 협력의 골든타임을 정확히 포착합니다.',ms:'Menangkap dengan tepat garis bawah pihak lawan dan tetingkap keemasan dalam projek transnasional.',ja:'国際プロジェクトにおいて、相手の底線と協力のゴールデンウィンドウを的確に捉えます。',zhTW:'在跨文化聯合辦學、官方資質框架制定中，精準捕捉對方底線與合作的黃金節點。',th:'จับจุดต่ำสุดของอีกฝ่ายและช่วงเวลาทองของความร่วมมือในโครงการข้ามชาติได้อย่างแม่นยำ',zhCN:'在跨文化联合办学、官方资质框架制定中，精准捕捉对方底线与合作的黄金节点。',id:'Menangkap dengan tepat batas bawah pihak lawan dan jendela emas dalam proyek transnasional.'},
+  feat3_title:{en:'Executive & Budget',es:'Ejecutivos y Presupuesto',ko:'임원 및 예산',ms:'Eksekutif & Belanjawan',ja:'幹部人事と予算',zhTW:'高管人事與預算',th:'ผู้บริหารและงบประมาณ',zhCN:'高管人事与预算',id:'Eksekutif & Anggaran'},
+  feat3_desc: {en:'Control the offense-defense rhythm when negotiating personnel spending and finalizing budgets.',es:'Controle el ritmo ofensivo-defensivo al negociar gastos de personal y finalizar presupuestos.',ko:'인건비 협상과 사업 예산 확정 시의 공방 리듬을 통제합니다.',ms:'Mengawal rentak serangan-pertahanan semasa merundingkan perbelanjaan kakitangan dan memuktamadkan belanjawan.',ja:'人件費の交渉や事業投資予算の確定における攻防のリズムを制御します。',zhTW:'溝通人員開支、敲定商業投入預算時的攻防節奏控制。',th:'ควบคุมจังหวะรุกรับในการเจรจาค่าใช้จ่ายบุคลากรและกำหนดงบประมาณ',zhCN:'沟通人员开支、敲定商业投入预算时的攻防节奏控制。',id:'Mengontrol ritme serang-bertahan saat menegosiasikan pengeluaran personel dan menetapkan anggaran.'},
+  feat4_title:{en:'Core Interest Defense',es:'Defensa de Intereses',ko:'핵심 이익 수호',ms:'Pertahanan Kepentingan',ja:'核心利益の防衛',zhTW:'核心利益捍衛',th:'ปกป้องผลประโยชน์หลัก',zhCN:'核心利益捍卫',id:'Pertahanan Kepentingan Inti'},
+  feat4_desc: {en:'Emotion-free bottom-line warnings in negotiations involving business reputation or equity commitments.',es:'Advertencias sin emoción en negociaciones que involucran reputación empresarial o compromisos de capital.',ko:'비즈니스 신용이나 지분 약속과 관련된 협상에서 감정을 배제한 마지노선 경고를 제공합니다.',ms:'Amaran garis bawah tanpa emosi dalam rundingan melibatkan reputasi perniagaan atau komitmen ekuiti.',ja:'ビジネス上の信用や株式比率に関する約束履行を巡る交渉において、感情を排した底線警告を提供します。',zhTW:'在一切涉及商業信譽、股權比例承諾兌現的博弈中，提供不帶任何感情色彩的底線預警。',th:'คำเตือนไร้อารมณ์ในการเจรจาที่เกี่ยวข้องกับชื่อเสียงทางธุรกิจหรือข้อผูกมัดด้านหุ้น',zhCN:'在一切涉及商业信誉、股权比例承诺兑现的博弈中，提供不带任何感情色彩的底线预警。',id:'Peringatan batas bawah tanpa emosi dalam negosiasi yang melibatkan reputasi bisnis atau komitmen ekuitas.'},
+
+  warn_html:{en:'<strong>System Warning</strong><br>The directives output by this system are extremely calm and incisive. It provides only the hard logic of "breakthrough truth" and "risk-stop loss" — no conventional emotional comfort of any kind. If you are not prepared to face an absolutely rational assessment, please download with caution.',es:'<strong>Advertencia del Sistema</strong><br>Las directivas de este sistema son extremadamente frías e incisivas. Solo ofrece la lógica dura de "verdad reveladora" y "control de pérdidas" — ningún consuelo emocional. Si no está preparado para una evaluación absolutamente racional, descargue con precaución.',ko:'<strong>시스템 경고</strong><br>본 시스템이 출력하는 지침은 극도로 냉철하고 정곡을 찌릅니다. "국면 타개의 진실"과 "리스크 손절"이라는 강경한 논리만을 제공하며, 통상적인 감정적 위안은 일체 제공하지 않습니다. 절대적으로 이성적인 평가에 맞설 준비가 되어 있지 않다면, 다운로드에 신중을 기하시기 바랍니다.',ms:'<strong>Amaran Sistem</strong><br>Arahan yang dikeluarkan oleh sistem ini amat tenang dan tepat mengena. Ia hanya menyediakan logik tegas "kebenaran penyelesaian kebuntuan" dan "pemberhentian kerugian risiko" — tanpa sebarang penghiburan emosi. Jika anda belum bersedia, sila muat turun dengan berhati-hati.',ja:'<strong>システム警告</strong><br>本システムが出力する指令は極めて冷静かつ的確です。「局面打開の真実」と「リスク損切り」という硬派なロジックのみを提供し、通常の感情的な慰めは一切提供しません。絶対的に理性的な評価に直面する準備ができていない場合は、ダウンロードを慎重にご検討ください。',zhTW:'<strong>系統警告</strong><br>本系統輸出的指令極其冷靜且一針見血。它只提供「破局真相」與「風控止損」的硬核邏輯，不提供任何常規的情緒撫慰。若您尚未準備好面對絕對理智的評估，請謹慎下載。',th:'<strong>คำเตือนของระบบ</strong><br>คำสั่งที่ระบบนี้ส่งออกมานั้นเยือกเย็นและตรงประเด็นอย่างยิ่ง ระบบให้เพียงตรรกะแข็งกร้าวของ "ความจริงที่ทลายทางตัน" และ "การหยุดขาดทุน" เท่านั้น — ไม่มีการปลอบประโลมทางอารมณ์ใดๆ หากคุณยังไม่พร้อม โปรดดาวน์โหลดด้วยความระมัดระวัง',zhCN:'<strong>系统警告</strong><br>本系统输出的指令极其冷静且一针见血。它只提供「破局真相」与「风控止损」的硬核逻辑，不提供任何常规的情绪抚慰。若您尚未准备好面对绝对理智的评估，请谨慎下载。',id:'<strong>Peringatan Sistem</strong><br>Instruksi yang dikeluarkan sistem ini sangat tenang dan tepat sasaran. Sistem ini hanya menyediakan logika keras "kebenaran pembuka jalan buntu" dan "pemotongan kerugian risiko" — tanpa penghiburan emosional apa pun. Jika Anda belum siap, unduh dengan hati-hati.'},
+
+  shot_tag:  {en:'Interface Preview',es:'Vista Previa',ko:'인터페이스 미리보기',ms:'Pratonton Antara Muka',ja:'インターフェースプレビュー',zhTW:'介面預覽',th:'ตัวอย่างอินเทอร์เฟซ',zhCN:'界面预览',id:'Pratinjau Antarmuka'},
+  shot_title:{en:'System Interface',es:'Interfaz del Sistema',ko:'시스템 인터페이스',ms:'Antara Muka Sistem',ja:'システムインターフェース',zhTW:'系統介面',th:'อินเทอร์เฟซระบบ',zhCN:'系统界面',id:'Antarmuka Sistem'},
+  shot_desc: {en:'Spacetime topology × behavioral finance × game theory fusion dashboard',es:'Topología espaciotemporal × finanzas conductuales × tablero de fusión de teoría de juegos',ko:'시공간 위상학 × 행동재무학 × 게임이론 융합 대시보드',ms:'Topologi ruang-masa × kewangan tingkah laku × papan pemuka gabungan teori permainan',ja:'時空トポロジー × 行動ファイナンス × ゲーム理論融合ダッシュボード',zhTW:'時空拓撲學 × 行為金融學 × 賽局理論融合儀表板',th:'โทโพโลยีกาลอวกาศ × การเงินเชิงพฤติกรรม × แดชบอร์ดทฤษฎีเกม',zhCN:'时空拓扑学 × 行为金融学 × 博弈论融合仪表盘',id:'Topologi ruang-waktu × keuangan perilaku × dasbor fusi teori permainan'},
+  shot1:{en:'Spacetime Dashboard',es:'Panel Espaciotemporal',ko:'시공간 대시보드',ms:'Papan Pemuka Ruang-Masa',ja:'時空ダッシュボード',zhTW:'時空風控儀表板',th:'แดชบอร์ดกาลอวกาศ',zhCN:'时空风控仪表盘',id:'Dasbor Ruang-Waktu'},
+  shot2:{en:'Advanced Simulation',es:'Simulación Avanzada',ko:'고급 시뮬레이션',ms:'Simulasi Lanjutan',ja:'高度シミュレーション',zhTW:'高階推演引擎',th:'การจำลองขั้นสูง',zhCN:'高阶推演引擎',id:'Simulasi Lanjutan'},
+  shot3:{en:'Decision Advisory',es:'Asesoría de Decisión',ko:'의사결정 자문',ms:'Nasihat Keputusan',ja:'意思決定アドバイザリー',zhTW:'決策諮詢服務',th:'คำแนะนำการตัดสินใจ',zhCN:'决策咨询服务',id:'Penasihat Keputusan'},
+  shot4:{en:'Decision Sandbox',es:'Simulador de Decisiones',ko:'의사결정 샌드박스',ms:'Kotak Pasir Keputusan',ja:'意思決定サンドボックス',zhTW:'決策沙盤模擬',th:'แซนด์บ็อกซ์การตัดสินใจ',zhCN:'决策沙盘模拟',id:'Sandbox Keputusan'},
+  shot5:{en:'Simulation History',es:'Historial de Simulación',ko:'시뮬레이션 기록',ms:'Sejarah Simulasi',ja:'シミュレーション履歴',zhTW:'推演歷史回顧',th:'ประวัติการจำลอง',zhCN:'推演历史回顾',id:'Riwayat Simulasi'},
+  shot6:{en:'Multilingual Support',es:'Soporte Multilingüe',ko:'다국어 지원',ms:'Sokongan Pelbagai Bahasa',ja:'多言語サポート',zhTW:'多語言支援',th:'รองรับหลายภาษา',zhCN:'多语言支持',id:'Dukungan Multibahasa'},
+
+  dl_tag:  {en:'Get Started',es:'Comenzar',ko:'시작하기',ms:'Mulakan',ja:'はじめる',zhTW:'立即開始',th:'เริ่มต้น',zhCN:'立即开始',id:'Mulai'},
+  dl_title:{en:'Ready to face the truth?',es:'¿Listo para enfrentar la verdad?',ko:'진실을 마주할 준비가 되셨나요?',ms:'Bersedia menghadapi kebenaran?',ja:'真実に直面する準備はできていますか？',zhTW:'準備好面對真相了嗎？',th:'พร้อมเผชิญความจริงหรือยัง?',zhCN:'准备好面对真相了吗？',id:'Siap menghadapi kebenaran?'},
+  dl_desc: {en:'Download Axiom64 and gain unemotional strategic assessment. Available worldwide.',es:'Descargue Axiom64 y obtenga evaluación estratégica sin emociones. Disponible en todo el mundo.',ko:'Axiom64를 다운로드하고 감정 없는 전략 평가를 받으세요. 전 세계에서 이용 가능합니다.',ms:'Muat turun Axiom64 dan dapatkan penilaian strategik tanpa emosi. Tersedia di seluruh dunia.',ja:'Axiom64をダウンロードして、感情を排した戦略評価を手に入れましょう。世界中で利用可能です。',zhTW:'下載 Axiom64，獲得不帶任何情緒的戰略評估能力。全球可用。',th:'ดาวน์โหลด Axiom64 และรับการประเมินกลยุทธ์ที่ไร้อารมณ์ มีให้บริการทั่วโลก',zhCN:'下载 Axiom64，获得不带任何情绪的战略评估能力。全球可用。',id:'Unduh Axiom64 dan dapatkan penilaian strategis tanpa emosi. Tersedia di seluruh dunia.'},
+  dl_note: {en:'v1.0.5 · iOS & Android · Worldwide',es:'v1.0.5 · iOS y Android · Mundial',ko:'v1.0.5 · iOS 및 Android · 전 세계',ms:'v1.0.5 · iOS & Android · Seluruh Dunia',ja:'v1.0.5 · iOS & Android · 世界対応',zhTW:'v1.0.5 · iOS 與 Android · 全球',th:'v1.0.5 · iOS และ Android · ทั่วโลก',zhCN:'v1.0.5 · iOS 与 Android · 全球',id:'v1.0.5 · iOS & Android · Seluruh Dunia'},
+
+  footer_privacy:{en:'Privacy Policy',es:'Privacidad',ko:'개인정보',ms:'Privasi',ja:'プライバシー',zhTW:'隱私政策',th:'ความเป็นส่วนตัว',zhCN:'隐私政策',id:'Privasi'},
+  footer_terms:  {en:'Terms of Service',es:'Términos',ko:'이용약관',ms:'Terma',ja:'利用規約',zhTW:'服務條款',th:'ข้อกำหนด',zhCN:'服务条款',id:'Ketentuan'},
+  footer_support:{en:'Support',es:'Soporte',ko:'지원',ms:'Sokongan',ja:'サポート',zhTW:'支援',th:'สนับสนุน',zhCN:'支持',id:'Dukungan'},
+};
+
+// Map lang code to I18N key suffix
+const LANG_MAP = {
+  en:'en', es:'es', ko:'ko', ms:'ms', ja:'ja',
+  'zh-TW':'zhTW', 'zh-CN':'zhCN', th:'th', id:'id'
+};
+
+// ── Detected language ──
+let currentLang = 'en';
+
+function getBrowserLang(){
+  const nav = navigator.language || navigator.languages?.[0] || '';
+  if(!nav) return 'en';
+  const l = nav.toLowerCase();
+  if(l.startsWith('zh')){
+    if(l.includes('tw')||l.includes('hk')||l.includes('hant')) return 'zh-TW';
+    if(l.includes('cn')||l.includes('hans')) return 'zh-CN';
+    return 'zh-CN';
+  }
+  if(l.startsWith('ja')) return 'ja';
+  if(l.startsWith('ko')) return 'ko';
+  if(l.startsWith('es')) return 'es';
+  if(l.startsWith('id')||l.startsWith('in')) return 'id';
+  if(l.startsWith('ms')||l.startsWith('zsm')) return 'ms';
+  if(l.startsWith('th')) return 'th';
+  return 'en';
+}
+
+function applyLang(lang){
+  currentLang = lang;
+  const suffix = LANG_MAP[lang] || 'en';
+
+  // Update all [data-i18n] elements
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.dataset.i18n;
+    const text = I18N[key]?.[suffix];
+    if(typeof text==='string') el.innerHTML = text;
+  });
+
+  // Update lang label
+  const langInfo = LANGS.find(l=>l.code===lang);
+  document.getElementById('lang-label').textContent = langInfo?.flag + ' ' + langInfo?.name || lang;
+
+  // Update html lang
+  document.documentElement.lang = lang;
+
+  // Update active class in dropdown
+  document.querySelectorAll('.lang-option').forEach(o=>{
+    o.classList.toggle('active', o.dataset.lang===lang);
+  });
+
+  // Update font for CJK/Thai
+  const body = document.body;
+  body.style.fontFamily = /zh|ja|ko|th/.test(lang)
+    ? "'DM Sans',-apple-system,BlinkMacSystemFont,'Noto Sans SC','Noto Sans TC','Noto Sans JP','Noto Sans KR','Noto Sans Thai',sans-serif"
+    : "'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif";
+
+  // Update page title
+  const titles = {
+    en:'Axiom64 — Wall St Clinical-Grade Executive Risk System',
+    es:'Axiom64 — Sistema de Riesgo Ejecutivo',
+    ko:'Axiom64 — 월스트리트급 임원 리스크 시스템',
+    ms:'Axiom64 — Sistem Risiko Eksekutif',
+    ja:'Axiom64 — ウォール街級エグゼクティブリスクシステム',
+    'zh-TW':'Axiom64 — 華爾街臨床級高管風控系統',
+    th:'Axiom64 — ระบบบริหารความเสี่ยงระดับผู้บริหาร',
+    'zh-CN':'Axiom64 — 华尔街临床级高管风控系统',
+    id:'Axiom64 — Sistem Risiko Eksekutif'
+  };
+  document.title = titles[lang] || titles.en;
+
+  // Update meta description
+  const descs = {
+    en:'Strip away emotion, calculate causation. Axiom64 is a secularized strategic advisor built for business leaders and elite dealmakers.',
+    es:'Elimina la emoción, calcula la causalidad. Axiom64 es un asesor estratégico secularizado para líderes empresariales.',
+    ko:'감정을 배제하고 인과를 계산한다. Axiom64는 비즈니스 리더를 위한 탈종교적 전략 참모입니다.',
+    ms:'Singkirkan emosi, kira sebab-akibat. Axiom64 ialah penasihat strategik sekular untuk pemimpin perniagaan.',
+    ja:'感情を排除し、因果を計算する。Axiom64はビジネスリーダーのための脱宗教化戦略参謀です。',
+    'zh-TW':'剝離情緒，計算因果。Axiom64是專為商業領袖打造的去宗教化戰略參謀。',
+    th:'ขจัดอารมณ์ คำนวณเหตุและผล Axiom64 คือที่ปรึกษากลยุทธ์ไร้ศาสนาสำหรับผู้นำธุรกิจ',
+    'zh-CN':'剥离情绪，计算因果。Axiom64是专为商业领袖打造的去宗教化战略参谋。',
+    id:'Singkirkan emosi, hitung sebab-akibat. Axiom64 adalah penasihat strategis sekuler untuk pemimpin bisnis.'
+  };
+  document.querySelector('meta[name="description"]').content = descs[lang] || descs.en;
+
+  // Save preference
+  try{ localStorage.setItem('axiom64_lang', lang); }catch(e){}
+}
+
+function buildLangDropdown(){
+  const dd = document.getElementById('lang-drop');
+  dd.innerHTML = LANGS.map(l=>
+    `<div class="lang-option" data-lang="${l.code}" onclick="applyLang('${l.code}');document.getElementById('lang-drop').classList.remove('show')">
+      <span class="flag">${l.flag}</span>${l.name}
+    </div>`
+  ).join('');
+}
+
+// ── Init ──
+(function(){
+  buildLangDropdown();
+  const saved = (()=>{try{return localStorage.getItem('axiom64_lang')}catch(e){return null}})();
+  const lang = saved || getBrowserLang();
+  applyLang(lang);
+  // Close dropdown on outside click
+  document.addEventListener('click',e=>{
+    const dd = document.getElementById('lang-drop');
+    const btn = document.querySelector('.lang-btn');
+    if(!btn.contains(e.target) && !dd.contains(e.target)) dd.classList.remove('show');
+  });
+})();
+</script>
+</body>
+</html>
